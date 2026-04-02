@@ -366,241 +366,283 @@ function OfferPanel({items,setItems,currency,setCurrency}) {
     try {
     const {jsPDF} = window.jspdf;
     const doc = new jsPDF('p','mm','a4');
-    const W = 210, H = 297, mg = 18;
-    const today = new Date().toLocaleDateString('en-GB');
-    const offerNum = 'AGM-' + Date.now().toString(36).toUpperCase().slice(-6);
-    const green = [22, 101, 52];
-    const darkGreen = [15, 63, 35];
-    const lightGreen = [240, 253, 244];
-    const gray = [100, 100, 100];
-    const darkText = [30, 30, 30];
+    const W = 210, H = 297, M = 15;
+    const today = new Date().toLocaleDateString('de-DE');
+    const offerNum = 'AGM-P-' + new Date().getFullYear() + '-' + String(Math.floor(Math.random()*9000)+1000);
+    const validUntil = new Date(Date.now() + 30*24*60*60*1000).toLocaleDateString('de-DE');
 
-    // ── PAGE FOOTER FUNCTION ──
-    const addFooter = (pageNum, totalPages) => {
-      // Bottom green bar
-      doc.setFillColor(...darkGreen);
-      doc.rect(0, H - 16, W, 16, 'F');
-      doc.setFontSize(7); doc.setFont('helvetica','normal'); doc.setTextColor(180, 220, 190);
-      doc.text('AGM Eco Solutions  |  ZAVNOBIH-a bb, Zenica 72000  |  +387 32 443-600  |  agm-ecosolutions.ba', W/2, H - 9, {align:'center'});
-      doc.text('Stranica ' + pageNum + ' / ' + totalPages, W - mg, H - 9, {align:'right'});
+    // Colors
+    const C = {
+      dark:[15,50,30], green:[22,101,52], accent:[34,160,70], light:[245,252,245],
+      mid:[220,240,225], text:[25,25,25], gray:[110,110,110], lgray:[170,170,170]
     };
 
-    // ── PAGE 1: COVER / HEADER ──
+    // ── Helper: add page header on subsequent pages ──
+    const addPageHeader = () => {
+      doc.setFillColor(...C.dark); doc.rect(0,0,W,14,'F');
+      doc.setFontSize(8); doc.setFont('helvetica','bold'); doc.setTextColor(200,230,210);
+      doc.text('AG-Metal Zenica d.o.o. — AGM Eco Solutions', M, 9);
+      doc.text('Ponuda: '+offerNum, W-M, 9, {align:'right'});
+      doc.setFillColor(...C.accent); doc.rect(0,14,W,0.8,'F');
+    };
+
+    // ── Helper: add footer to every page ──
+    const addFooter = (pn, tp) => {
+      const fy = H - 18;
+      doc.setDrawColor(...C.mid); doc.setLineWidth(0.3); doc.line(M,fy,W-M,fy);
+      doc.setFontSize(6.5); doc.setFont('helvetica','normal'); doc.setTextColor(...C.lgray);
+      doc.text('AG-Metal Zenica d.o.o.  •  Ovlasteni distributer ISEA Italy  •  ZAVNOBIH-a bb, 72000 Zenica, BiH', M, fy+5);
+      doc.text('Tel: +387 32 443-600  •  Mob: +387 61 723-709  •  agm.isea@gmail.com  •  www.agm-ecosolutions.ba', M, fy+9);
+      doc.text('Stranica '+pn+'/'+tp, W-M, fy+7, {align:'right'});
+    };
+
+    // ═══════════════════════════════════════════
+    // PAGE 1 — HEADER
+    // ═══════════════════════════════════════════
     let y = 0;
 
-    // Top green header band
-    doc.setFillColor(...darkGreen);
-    doc.rect(0, 0, W, 48, 'F');
+    // Top dark green band
+    doc.setFillColor(...C.dark); doc.rect(0,0,W,42,'F');
+    // Gold/green accent line
+    doc.setFillColor(...C.accent); doc.rect(0,42,W,1.2,'F');
 
-    // Accent stripe
-    doc.setFillColor(...green);
-    doc.rect(0, 48, W, 3, 'F');
+    // Left green sidebar accent
+    doc.setFillColor(...C.green); doc.rect(0,0,5,42,'F');
 
-    // Company name in header
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(24); doc.setFont('helvetica','bold');
-    doc.text('AGM ECO SOLUTIONS', mg, 20);
+    // Company name
+    doc.setTextColor(255,255,255); doc.setFontSize(22); doc.setFont('helvetica','bold');
+    doc.text('AG-METAL ZENICA d.o.o.', M+4, 16);
+    doc.setFontSize(11); doc.setFont('helvetica','normal'); doc.setTextColor(160,210,175);
+    doc.text('AGM Eco Solutions', M+4, 23);
+    doc.setFontSize(7.5); doc.setTextColor(130,180,150);
+    doc.text('Ovlasteni distributer ISEA Italy  |  Sistemi za tretman otpadnih voda od 2004.', M+4, 29);
+    doc.text('ZAVNOBIH-a bb, 72000 Zenica  |  +387 32 443-600  |  +387 61 723-709', M+4, 34);
+    doc.text('agm.isea@gmail.com  |  www.agm-ecosolutions.ba', M+4, 39);
 
-    doc.setFontSize(9); doc.setFont('helvetica','normal');
-    doc.setTextColor(180, 220, 190);
-    doc.text('Wastewater Treatment Equipment & Systems', mg, 28);
-    doc.text('ZAVNOBIH-a bb, Zenica 72000  |  +387 32 443-600', mg, 34);
-    doc.text('www.agm-ecosolutions.ba', mg, 40);
-
-    // Logo on right
+    // Logo top-right
     if (typeof AGM_LOGO_DATA !== 'undefined' && AGM_LOGO_DATA) {
-      try { doc.addImage(AGM_LOGO_DATA, 'PNG', W - mg - 30, 6, 30, 30); } catch(e) {}
+      try { doc.addImage(AGM_LOGO_DATA, 'PNG', W-M-28, 5, 28, 28); } catch(e) {}
     }
 
-    y = 60;
+    y = 50;
 
-    // OFFER title section
-    doc.setFillColor(...lightGreen);
-    doc.roundedRect(mg, y, W - mg*2, 22, 3, 3, 'F');
-    doc.setFontSize(18); doc.setFont('helvetica','bold'); doc.setTextColor(...green);
-    doc.text('PONUDA', mg + 8, y + 10);
-    doc.setFontSize(10); doc.setFont('helvetica','normal'); doc.setTextColor(...gray);
-    doc.text('Broj: ' + offerNum, mg + 8, y + 17);
-    doc.text('Datum: ' + today, W/2, y + 10, {align:'center'});
-    doc.text('Valuta: ' + currency, W/2, y + 17, {align:'center'});
-    doc.setFontSize(10); doc.setFont('helvetica','bold'); doc.setTextColor(...darkGreen);
-    doc.text('OFFER', W - mg - 8, y + 10, {align:'right'});
+    // ── OFFER TITLE BAR ──
+    doc.setFillColor(...C.light); doc.rect(M, y, W-M*2, 18, 'F');
+    doc.setDrawColor(...C.mid); doc.setLineWidth(0.3); doc.rect(M, y, W-M*2, 18, 'S');
 
-    y += 30;
+    doc.setFontSize(16); doc.setFont('helvetica','bold'); doc.setTextColor(...C.green);
+    doc.text('PONUDA', M+6, y+7.5);
+    doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.setTextColor(...C.gray);
+    doc.text('Quotation / Commercial Offer', M+6, y+13);
 
-    // FROM / TO boxes side by side
-    const boxW = (W - mg*2 - 8) / 2;
-
-    // FROM box
-    doc.setDrawColor(200, 220, 200); doc.setLineWidth(0.3);
-    doc.roundedRect(mg, y, boxW, 32, 2, 2, 'S');
-    doc.setFillColor(...lightGreen);
-    doc.roundedRect(mg, y, boxW, 8, 2, 2, 'F');
-    doc.rect(mg, y + 6, boxW, 2, 'F'); // cover bottom radius
-    doc.setFontSize(8); doc.setFont('helvetica','bold'); doc.setTextColor(...green);
-    doc.text('OD / FROM', mg + 4, y + 5.5);
-    doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.setTextColor(...darkText);
-    let fy = y + 14;
+    // Right side: offer details
+    doc.setFontSize(8); doc.setFont('helvetica','bold'); doc.setTextColor(...C.text);
+    const rx = W-M-6;
+    doc.text('Broj / No:', rx-50, y+5); doc.setFont('helvetica','normal'); doc.text(offerNum, rx, y+5, {align:'right'});
     doc.setFont('helvetica','bold');
-    doc.text('AGM Eco Solutions d.o.o.', mg + 4, fy); fy += 4.5;
-    doc.setFont('helvetica','normal'); doc.setTextColor(...gray);
-    doc.text('ZAVNOBIH-a bb, Zenica 72000', mg + 4, fy); fy += 4;
-    doc.text('+387 32 443-600', mg + 4, fy); fy += 4;
-    doc.text('agm-ecosolutions.ba', mg + 4, fy);
+    doc.text('Datum / Date:', rx-50, y+10); doc.setFont('helvetica','normal'); doc.text(today, rx, y+10, {align:'right'});
+    doc.setFont('helvetica','bold');
+    doc.text('Valuta / Currency:', rx-50, y+15); doc.setFont('helvetica','normal'); doc.text(currency, rx, y+15, {align:'right'});
 
-    // TO box
-    const toX = mg + boxW + 8;
-    doc.setDrawColor(200, 220, 200);
-    doc.roundedRect(toX, y, boxW, 32, 2, 2, 'S');
-    doc.setFillColor(...lightGreen);
-    doc.roundedRect(toX, y, boxW, 8, 2, 2, 'F');
-    doc.rect(toX, y + 6, boxW, 2, 'F');
-    doc.setFontSize(8); doc.setFont('helvetica','bold'); doc.setTextColor(...green);
-    doc.text('ZA / TO', toX + 4, y + 5.5);
-    doc.setFontSize(9); doc.setTextColor(...darkText);
-    let cy = y + 14;
-    if (customer.name) { doc.setFont('helvetica','bold'); doc.text(customer.name, toX + 4, cy); cy += 4.5; }
-    doc.setFont('helvetica','normal'); doc.setTextColor(...gray);
-    if (customer.address) { doc.text(customer.address, toX + 4, cy); cy += 4; }
-    if (customer.phone) { doc.text(customer.phone, toX + 4, cy); cy += 4; }
-    if (customer.email) { doc.text(customer.email, toX + 4, cy); }
+    y += 24;
 
-    y += 40;
+    // ── FROM / TO ──
+    const bw = (W-M*2-10)/2;
 
-    // ── PRODUCT ITEMS ──
+    // FROM
+    doc.setFillColor(...C.green); doc.rect(M, y, bw, 7, 'F');
+    doc.setFontSize(8); doc.setFont('helvetica','bold'); doc.setTextColor(255,255,255);
+    doc.text('PONUDJAC / SELLER', M+3, y+5);
+    doc.setDrawColor(...C.mid); doc.setLineWidth(0.3);
+    doc.rect(M, y+7, bw, 30, 'S');
+    doc.setFontSize(9); doc.setFont('helvetica','bold'); doc.setTextColor(...C.text);
+    doc.text('AG-Metal Zenica d.o.o.', M+4, y+13);
+    doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(...C.gray);
+    doc.text('ZAVNOBIH-a bb', M+4, y+18);
+    doc.text('72000 Zenica, Bosna i Hercegovina', M+4, y+22.5);
+    doc.text('Tel: +387 32 443-600', M+4, y+27);
+    doc.text('Mob: +387 61 723-709', M+4, y+31);
+    doc.text('agm.isea@gmail.com', M+4, y+35);
+
+    // TO
+    const tx = M+bw+10;
+    doc.setFillColor(...C.green); doc.rect(tx, y, bw, 7, 'F');
+    doc.setFontSize(8); doc.setFont('helvetica','bold'); doc.setTextColor(255,255,255);
+    doc.text('KUPAC / BUYER', tx+3, y+5);
+    doc.rect(tx, y+7, bw, 30, 'S');
+    doc.setFontSize(9); doc.setFont('helvetica','bold'); doc.setTextColor(...C.text);
+    let by = y+13;
+    if(customer.name){doc.text(customer.name,tx+4,by);by+=5;}
+    doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(...C.gray);
+    if(customer.address){doc.text(customer.address,tx+4,by);by+=4.5;}
+    if(customer.phone){doc.text('Tel: '+customer.phone,tx+4,by);by+=4.5;}
+    if(customer.email){doc.text(customer.email,tx+4,by);}
+
+    y += 44;
+
+    // ── ITEMS TABLE HEADER ──
+    doc.setFillColor(...C.dark); doc.rect(M, y, W-M*2, 8, 'F');
+    doc.setFontSize(7.5); doc.setFont('helvetica','bold'); doc.setTextColor(255,255,255);
+    doc.text('R.br', M+3, y+5.5);
+    doc.text('Slika', M+14, y+5.5);
+    doc.text('Naziv proizvoda / Opis', M+40, y+5.5);
+    doc.text('Kol.', 128, y+5.5);
+    doc.text('Jed. cijena', 140, y+5.5);
+    doc.text('Rabat', 162, y+5.5);
+    doc.text('Iznos', W-M-3, y+5.5, {align:'right'});
+    y += 10;
+
+    // ── PRODUCT ROWS ──
     items.forEach((item, idx) => {
-      // Check if we need a new page (each item needs ~55mm)
-      if (y > H - 75) {
-        doc.addPage();
-        y = 20;
-      }
+      const rowH = item.description ? 32 : 26;
+      if (y + rowH > H - 30) { doc.addPage(); addPageHeader(); y = 20; }
 
-      // Item card with border
-      const cardH = 50;
-      doc.setDrawColor(210, 230, 210); doc.setLineWidth(0.3);
-      doc.roundedRect(mg, y, W - mg*2, cardH, 2, 2, 'S');
+      // Alternating row bg
+      if (idx % 2 === 0) { doc.setFillColor(250,253,250); doc.rect(M, y-2, W-M*2, rowH, 'F'); }
 
-      // Light green number badge
-      doc.setFillColor(...green);
-      doc.circle(mg + 8, y + 8, 5, 'F');
-      doc.setFontSize(10); doc.setFont('helvetica','bold'); doc.setTextColor(255,255,255);
-      doc.text('' + (idx + 1), mg + 8, y + 9.5, {align:'center'});
+      // Row border bottom
+      doc.setDrawColor(...C.mid); doc.setLineWidth(0.15);
+      doc.line(M, y+rowH-2, W-M, y+rowH-2);
+
+      // Number
+      doc.setFontSize(8); doc.setFont('helvetica','bold'); doc.setTextColor(...C.green);
+      doc.text(String(idx+1), M+5, y+5, {align:'center'});
 
       // Product image
       if (item.imgData) {
         try {
-          const imgType = item.imgData.includes('image/png') ? 'PNG' : 'JPEG';
-          doc.addImage(item.imgData, imgType, mg + 16, y + 3, 28, 28);
+          const it = item.imgData.includes('image/png') ? 'PNG' : 'JPEG';
+          doc.addImage(item.imgData, it, M+10, y-1, 22, 22);
         } catch(e) {}
       }
 
       // Product name
-      doc.setFontSize(11); doc.setFont('helvetica','bold'); doc.setTextColor(...darkText);
-      const displayName = item.name.length > 45 ? item.name.substring(0, 42) + '...' : item.name;
-      doc.text(displayName, mg + 48, y + 9);
+      doc.setFontSize(9); doc.setFont('helvetica','bold'); doc.setTextColor(...C.text);
+      const dn = item.name.length > 38 ? item.name.substring(0,35)+'...' : item.name;
+      doc.text(dn, M+40, y+5);
 
       // Category
-      doc.setFontSize(7); doc.setFont('helvetica','normal'); doc.setTextColor(...gray);
-      doc.text(item.category || '', mg + 48, y + 14);
+      doc.setFontSize(6.5); doc.setFont('helvetica','normal'); doc.setTextColor(...C.lgray);
+      doc.text(item.category||'', M+40, y+9.5);
 
       // Description
       if (item.description) {
-        doc.setFontSize(8); doc.setTextColor(80, 80, 80);
-        const descLines = doc.splitTextToSize(item.description, W - mg*2 - 52);
-        descLines.slice(0, 2).forEach((line, li) => {
-          doc.text(line, mg + 48, y + 19 + li * 3.5);
-        });
+        doc.setFontSize(7); doc.setTextColor(...C.gray);
+        const dl = doc.splitTextToSize(item.description, 82);
+        dl.slice(0,2).forEach((l,i) => doc.text(l, M+40, y+14+i*3.5));
       }
 
-      // Price details row at bottom of card
-      const priceY = y + cardH - 10;
-      doc.setDrawColor(230, 240, 230); doc.setLineWidth(0.2);
-      doc.line(mg + 4, priceY - 4, W - mg - 4, priceY - 4);
+      // Quantity
+      doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.setTextColor(...C.text);
+      doc.text(String(item.quantity), 132, y+5, {align:'center'});
 
-      doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.setTextColor(...gray);
-      doc.text('Kol: ' + item.quantity, mg + 6, priceY);
-      doc.text('Cijena: ' + fmt(item.price), mg + 30, priceY);
-      if (item.rebate) doc.text('Rabat: ' + item.rebate + '%', mg + 70, priceY);
-      doc.text('PDV: ' + item.vatPercent + '%', mg + 105, priceY);
+      // Unit price
+      doc.text(fmt(item.price), 152, y+5, {align:'center'});
 
-      // Total for this item — bold green
-      doc.setFontSize(11); doc.setFont('helvetica','bold'); doc.setTextColor(...green);
-      doc.text(fmt(itemTotal(item)), W - mg - 6, priceY, {align:'right'});
+      // Rebate
+      if (item.rebate) {
+        doc.setTextColor(180,50,50);
+        doc.text('-'+item.rebate+'%', 166, y+5, {align:'center'});
+      } else {
+        doc.setTextColor(...C.lgray); doc.text('—', 166, y+5, {align:'center'});
+      }
 
-      y += cardH + 6;
+      // Row total
+      doc.setFontSize(9); doc.setFont('helvetica','bold'); doc.setTextColor(...C.green);
+      doc.text(fmt(itemTotal(item)), W-M-3, y+5, {align:'right'});
+
+      // VAT note small
+      doc.setFontSize(6); doc.setFont('helvetica','normal'); doc.setTextColor(...C.lgray);
+      doc.text('PDV '+item.vatPercent+'%', W-M-3, y+9.5, {align:'right'});
+
+      y += rowH;
     });
 
-    // ── TOTALS SECTION ──
-    if (y > H - 55) { doc.addPage(); y = 20; }
-
+    // ── TOTALS ──
+    if (y > H - 65) { doc.addPage(); addPageHeader(); y = 20; }
     y += 4;
 
-    // Totals box
-    const totalsX = W/2 + 10;
-    const totalsW = W/2 - mg - 10;
+    const tw = 75; const tLeft = W-M-tw;
 
-    doc.setDrawColor(...green); doc.setLineWidth(0.5);
-    doc.roundedRect(totalsX, y, totalsW, 38, 2, 2, 'S');
+    // Subtotal row
+    doc.setFillColor(...C.light); doc.rect(tLeft, y, tw, 8, 'F');
+    doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.setTextColor(...C.gray);
+    doc.text('Podzbroj bez PDV-a:', tLeft+3, y+5.5);
+    doc.setTextColor(...C.text); doc.setFont('helvetica','bold');
+    doc.text(fmt(grandSub), tLeft+tw-3, y+5.5, {align:'right'});
+    y += 9;
 
-    // Subtotal
-    doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.setTextColor(...gray);
-    doc.text('Podzbroj / Subtotal:', totalsX + 5, y + 8);
-    doc.setTextColor(...darkText);
-    doc.text(fmt(grandSub), totalsX + totalsW - 5, y + 8, {align:'right'});
+    // VAT row
+    doc.setFillColor(...C.light); doc.rect(tLeft, y, tw, 8, 'F');
+    doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.setTextColor(...C.gray);
+    doc.text('PDV (17%):', tLeft+3, y+5.5);
+    doc.setTextColor(...C.text); doc.setFont('helvetica','bold');
+    doc.text(fmt(grandVat), tLeft+tw-3, y+5.5, {align:'right'});
+    y += 9;
 
-    // VAT
-    doc.setTextColor(...gray);
-    doc.text('PDV / VAT:', totalsX + 5, y + 16);
-    doc.setTextColor(...darkText);
-    doc.text(fmt(grandVat), totalsX + totalsW - 5, y + 16, {align:'right'});
+    // Grand total
+    doc.setFillColor(...C.dark); doc.rect(tLeft, y, tw, 12, 'F');
+    doc.setFontSize(12); doc.setFont('helvetica','bold'); doc.setTextColor(255,255,255);
+    doc.text('UKUPNO:', tLeft+4, y+8.5);
+    doc.setFontSize(13);
+    doc.text(fmt(grandTotal), tLeft+tw-4, y+8.5, {align:'right'});
+    y += 18;
 
-    // Divider
-    doc.setDrawColor(200, 220, 200); doc.setLineWidth(0.3);
-    doc.line(totalsX + 4, y + 20, totalsX + totalsW - 4, y + 20);
-
-    // Grand total with green background
-    doc.setFillColor(...green);
-    doc.roundedRect(totalsX + 2, y + 23, totalsW - 4, 12, 2, 2, 'F');
-    doc.setFontSize(12); doc.setFont('helvetica','bold'); doc.setTextColor(255, 255, 255);
-    doc.text('UKUPNO:', totalsX + 8, y + 31);
-    doc.text(fmt(grandTotal), totalsX + totalsW - 7, y + 31, {align:'right'});
-
-    y += 48;
+    // Validity
+    doc.setFontSize(7.5); doc.setFont('helvetica','italic'); doc.setTextColor(...C.gray);
+    doc.text('Ponuda vazi do / Valid until: '+validUntil, tLeft, y);
+    y += 8;
 
     // ── NOTES ──
     if (notes) {
-      if (y > H - 40) { doc.addPage(); y = 20; }
-      doc.setDrawColor(210, 230, 210); doc.setLineWidth(0.3);
-      doc.roundedRect(mg, y, W - mg*2, 6 + Math.min(doc.splitTextToSize(notes, W - mg*2 - 12).length * 4, 30), 2, 2, 'S');
-      doc.setFontSize(8); doc.setFont('helvetica','bold'); doc.setTextColor(...green);
-      doc.text('NAPOMENE / NOTES:', mg + 5, y + 5);
-      doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.setTextColor(80, 80, 80);
-      const noteLines = doc.splitTextToSize(notes, W - mg*2 - 12);
-      noteLines.slice(0, 6).forEach((line, i) => {
-        doc.text(line, mg + 5, y + 10 + i * 4);
-      });
-      y += 16 + Math.min(noteLines.length * 4, 24);
+      if (y > H - 40) { doc.addPage(); addPageHeader(); y = 20; }
+      doc.setFillColor(...C.light); doc.rect(M, y, W-M*2, 8+Math.min(doc.splitTextToSize(notes,W-M*2-12).length*4,28), 'F');
+      doc.setDrawColor(...C.mid); doc.setLineWidth(0.3); doc.rect(M, y, W-M*2, 8+Math.min(doc.splitTextToSize(notes,W-M*2-12).length*4,28), 'S');
+      doc.setFontSize(8); doc.setFont('helvetica','bold'); doc.setTextColor(...C.green);
+      doc.text('NAPOMENE / NOTES:', M+4, y+5.5);
+      doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.setTextColor(70,70,70);
+      const nl = doc.splitTextToSize(notes, W-M*2-12);
+      nl.slice(0,6).forEach((l,i) => doc.text(l, M+4, y+11+i*4));
+      y += 14 + Math.min(nl.length*4, 24);
     }
 
-    // ── SIGNATURE LINE ──
-    if (y > H - 35) { doc.addPage(); y = 20; }
-    y += 10;
-    doc.setDrawColor(180, 180, 180); doc.setLineWidth(0.3);
-    doc.line(mg, y + 12, mg + 60, y + 12);
-    doc.line(W - mg - 60, y + 12, W - mg, y + 12);
-    doc.setFontSize(7); doc.setFont('helvetica','normal'); doc.setTextColor(150, 150, 150);
-    doc.text('Potpis ponudioca / Seller signature', mg, y + 17);
-    doc.text('Potpis kupca / Buyer signature', W - mg - 60, y + 17);
+    // ── TERMS ──
+    if (y > H - 40) { doc.addPage(); addPageHeader(); y = 20; }
+    y += 4;
+    doc.setFontSize(7); doc.setFont('helvetica','bold'); doc.setTextColor(...C.green);
+    doc.text('USLOVI PONUDE / TERMS:', M, y); y += 4;
+    doc.setFont('helvetica','normal'); doc.setTextColor(...C.gray); doc.setFontSize(6.5);
+    const terms = [
+      '1. Cijene su izrazene u '+currency+'. / Prices are in '+currency+'.',
+      '2. Rok vazenja ponude: 30 dana od datuma izdavanja. / Offer valid for 30 days.',
+      '3. Rok isporuke: po dogovoru. / Delivery: as agreed.',
+      '4. Placanje: po dogovoru. / Payment: as agreed.',
+      '5. Garancija: prema uslovima proizvodzaca ISEA Italy. / Warranty per ISEA Italy terms.'
+    ];
+    terms.forEach(t => { doc.text(t, M, y); y += 3.5; });
 
-    // Add footers to all pages
-    const totalPages = doc.internal.getNumberOfPages();
-    for (let p = 1; p <= totalPages; p++) {
-      doc.setPage(p);
-      addFooter(p, totalPages);
-    }
+    // ── SIGNATURES ──
+    if (y > H - 35) { doc.addPage(); addPageHeader(); y = 20; }
+    y += 12;
+    doc.setDrawColor(...C.lgray); doc.setLineWidth(0.3);
+    // Seller
+    doc.line(M, y+10, M+65, y+10);
+    doc.setFontSize(7); doc.setFont('helvetica','normal'); doc.setTextColor(...C.lgray);
+    doc.text('Za ponudioca / For seller', M, y+15);
+    doc.setFontSize(6.5); doc.setTextColor(...C.gray);
+    doc.text('AG-Metal Zenica d.o.o.', M, y+19);
+    doc.text('M.P.', M+30, y+5);
+    // Buyer
+    doc.line(W-M-65, y+10, W-M, y+10);
+    doc.text('Za kupca / For buyer', W-M-65, y+15);
+    doc.text('Datum / Date: _______________', W-M-65, y+19);
 
-    doc.save('AGM_Ponuda_' + (customer.name || 'Kupac').replace(/\s+/g, '_') + '_' + today.replace(/\//g, '-') + '.pdf');
-    } catch(err) { alert('PDF greska: ' + err.message); console.error(err); }
+    // ── FOOTERS ON ALL PAGES ──
+    const tp = doc.internal.getNumberOfPages();
+    for (let p = 1; p <= tp; p++) { doc.setPage(p); addFooter(p, tp); }
+
+    doc.save('AGM_Ponuda_'+(customer.name||'Kupac').replace(/\s+/g,'_')+'_'+today.replace(/\./g,'-')+'.pdf');
+    } catch(err) { alert('PDF greska: '+err.message); console.error(err); }
   };
 
   const onDragStart=(e,idx)=>{setDragIdx(idx);e.dataTransfer.effectAllowed='move';};
