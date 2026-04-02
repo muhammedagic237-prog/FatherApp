@@ -408,9 +408,7 @@ function OfferPanel({items,setItems,currency,setCurrency}) {
     doc.text('www.agm-ecosolutions.ba', mg, 40);
 
     // Logo on right
-    if (companyLogo) {
-      try { doc.addImage(companyLogo, 'PNG', W - mg - 30, 6, 30, 30); } catch(e) {}
-    } else if (typeof AGM_LOGO_DATA !== 'undefined' && AGM_LOGO_DATA) {
+    if (typeof AGM_LOGO_DATA !== 'undefined' && AGM_LOGO_DATA) {
       try { doc.addImage(AGM_LOGO_DATA, 'PNG', W - mg - 30, 6, 30, 30); } catch(e) {}
     }
 
