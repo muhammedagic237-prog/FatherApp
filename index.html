@@ -37,6 +37,12 @@
     @keyframes luxDropSplash{0%{r:4;opacity:0.6}100%{r:28;opacity:0}}
     @keyframes luxOrb{0%,100%{transform:translate(0,0) scale(1);opacity:0.06}50%{transform:translate(15px,-10px) scale(1.1);opacity:0.12}}
     @keyframes productHover{from{box-shadow:0 2px 8px rgba(0,0,0,0.06)}to{box-shadow:0 8px 30px rgba(34,97,45,0.15);transform:translateY(-3px)}}
+    @keyframes dropFall{0%{top:-5%;opacity:0}10%{opacity:0.6}90%{opacity:0.6}100%{top:105%;opacity:0}}
+    @keyframes dropSplashRing{0%{transform:scale(0);opacity:0.5}100%{transform:scale(3);opacity:0}}
+    @keyframes bubbleRise{0%{bottom:-5%;opacity:0}10%{opacity:0.3}80%{opacity:0.3}100%{bottom:105%;opacity:0}}
+    @keyframes waveFlow{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+    @keyframes rippleExpand{0%{transform:scale(0.5);opacity:0.15}100%{transform:scale(2.5);opacity:0}}
+    @keyframes floatLeaf{0%{transform:translateY(0) rotate(0deg);opacity:0}10%{opacity:0.4}90%{opacity:0.4}100%{transform:translateY(-200px) rotate(45deg);opacity:0}}
 
     .fade-in{animation:fadeIn 0.4s ease-out}
     .slide-up{animation:slideUp 0.4s ease-out}
@@ -207,16 +213,93 @@ function LeftMenu({activeCat,onSelect}) {
 }
 
 /* ── PRODUCT GRID (center) ── */
+function WaterBackground() {
+  const drops = useMemo(() => Array.from({length:15},(_,i) => ({
+    i, left:5+Math.random()*90, dur:3+Math.random()*4, delay:Math.random()*6,
+    size:2+Math.random()*3, opacity:0.3+Math.random()*0.3
+  })),[]);
+  const bubbles = useMemo(() => Array.from({length:10},(_,i) => ({
+    i, left:10+Math.random()*80, dur:4+Math.random()*5, delay:Math.random()*5,
+    size:4+Math.random()*8
+  })),[]);
+  const ripples = useMemo(() => Array.from({length:5},(_,i) => ({
+    i, left:15+Math.random()*70, top:20+Math.random()*60, dur:3+Math.random()*3, delay:i*1.5
+  })),[]);
+  const floatingLeaves = useMemo(() => Array.from({length:6},(_,i) => ({
+    i, left:Math.random()*100, dur:6+Math.random()*5, delay:Math.random()*8,
+    emoji:['🌿','🍃','☘️'][i%3], size:14+Math.random()*10
+  })),[]);
+
+  return (
+    <div style={{position:'absolute',inset:0,overflow:'hidden',pointerEvents:'none'}}>
+      {/* Falling water drops */}
+      {drops.map(d => (
+        <div key={'d'+d.i} style={{
+          position:'absolute',left:d.left+'%',top:'-5%',
+          width:d.size,height:d.size*3,borderRadius:'50% 50% 50% 50% / 30% 30% 70% 70%',
+          background:`linear-gradient(180deg, rgba(134,239,172,${d.opacity}), rgba(34,197,94,${d.opacity*0.6}))`,
+          boxShadow:`0 0 ${d.size*2}px rgba(134,239,172,0.15)`,
+          animation:`dropFall ${d.dur}s linear ${d.delay}s infinite`
+        }} />
+      ))}
+      {/* Rising bubbles */}
+      {bubbles.map(b => (
+        <div key={'b'+b.i} style={{
+          position:'absolute',left:b.left+'%',bottom:'-5%',
+          width:b.size,height:b.size,borderRadius:'50%',
+          border:'1px solid rgba(134,239,172,0.2)',
+          background:'radial-gradient(circle at 35% 35%, rgba(167,243,208,0.12), transparent)',
+          animation:`bubbleRise ${b.dur}s ease-out ${b.delay}s infinite`
+        }} />
+      ))}
+      {/* Ripple rings */}
+      {ripples.map(r => (
+        <div key={'r'+r.i} style={{
+          position:'absolute',left:r.left+'%',top:r.top+'%',
+          width:40,height:40,borderRadius:'50%',
+          border:'1.5px solid rgba(134,239,172,0.1)',
+          animation:`rippleExpand ${r.dur}s ease-out ${r.delay}s infinite`
+        }} />
+      ))}
+      {/* Floating leaves */}
+      {floatingLeaves.map(l => (
+        <div key={'l'+l.i} style={{
+          position:'absolute',left:l.left+'%',bottom:'0%',
+          fontSize:l.size,opacity:0,
+          animation:`floatLeaf ${l.dur}s ease-in-out ${l.delay}s infinite`
+        }}>{l.emoji}</div>
+      ))}
+      {/* Bottom wave SVG */}
+      <svg style={{position:'absolute',bottom:0,left:0,width:'200%',height:80,animation:'waveFlow 8s linear infinite'}}>
+        <path d="M0,40 Q60,15 120,40 T240,40 T360,40 T480,40 T600,40 T720,40 T840,40 T960,40 T1080,40 T1200,40 T1320,40 T1440,40 T1560,40 T1680,40 T1800,40 T1920,40 L1920,80 L0,80 Z"
+          fill="rgba(34,197,94,0.06)" />
+        <path d="M0,50 Q50,30 100,50 T200,50 T300,50 T400,50 T500,50 T600,50 T700,50 T800,50 T900,50 T1000,50 T1100,50 T1200,50 T1300,50 T1400,50 T1500,50 T1600,50 T1700,50 T1800,50 T1920,50 L1920,80 L0,80 Z"
+          fill="rgba(20,184,166,0.04)" />
+      </svg>
+    </div>
+  );
+}
+
 function ProductGrid({category,onAddToOffer}) {
   if(!category) return (
-    <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',gap:16}}>
-      <div style={{fontSize:60,opacity:0.1,animation:'breathe 4s ease-in-out infinite'}}>♻️</div>
-      <div style={{color:'rgba(34,97,45,0.2)',fontSize:14,fontWeight:500,letterSpacing:2}}>Izaberite kategoriju</div>
+    <div style={{flex:1,position:'relative',
+      background:'linear-gradient(160deg, #eef5ec 0%, #e4f0e0 30%, #ddeee0 60%, #e0efe8 100%)'}}>
+      <WaterBackground />
+      <div style={{position:'relative',zIndex:1,display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',gap:20,height:'100%'}}>
+        <div style={{fontSize:80,opacity:0.15,animation:'breathe 4s ease-in-out infinite',filter:'drop-shadow(0 4px 20px rgba(34,97,45,0.1))'}}>💧</div>
+        <div style={{color:'rgba(34,97,45,0.3)',fontSize:16,fontWeight:600,letterSpacing:3,textTransform:'uppercase'}}>Izaberite kategoriju</div>
+        <div style={{color:'rgba(34,97,45,0.15)',fontSize:11,letterSpacing:2,maxWidth:300,textAlign:'center',lineHeight:1.6}}>
+          Odaberite proizvod iz menija i kreirajte ponudu za kupca
+        </div>
+      </div>
     </div>
   );
 
   return (
-    <div style={{flex:1,overflowY:'auto',padding:20}} className="fade-in">
+    <div style={{flex:1,overflowY:'auto',padding:20,position:'relative',
+      background:'linear-gradient(160deg, #eef5ec 0%, #e8f2e4 50%, #e4f0e8 100%)'}} className="fade-in">
+      <WaterBackground />
+      <div style={{position:'relative',zIndex:1}}>
       <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:16}}>
         <span style={{fontSize:24}}>{category.icon}</span>
         <div>
@@ -246,6 +329,7 @@ function ProductGrid({category,onAddToOffer}) {
             </div>
           </div>
         ))}
+      </div>
       </div>
     </div>
   );
@@ -309,7 +393,7 @@ function OfferPanel({items,setItems,currency,setCurrency}) {
   const onDrop=(e,idx)=>{e.preventDefault();if(dragIdx!==null&&dragIdx!==idx)moveItem(dragIdx,idx);setDragIdx(null);};
 
   return (
-    <div style={{width:380,minWidth:360,height:'100%',background:'#fff',borderLeft:'1px solid rgba(34,97,45,0.06)',
+    <div style={{width:380,minWidth:360,height:'100%',background:'linear-gradient(180deg, #f4f9f4 0%, #f0f6f0 50%, #edf4ed 100%)',borderLeft:'1px solid rgba(34,97,45,0.08)',
       display:'flex',flexDirection:'column',overflow:'hidden'}}>
       {/* Header */}
       <div style={{padding:'16px 20px',borderBottom:'1px solid rgba(34,97,45,0.06)',display:'flex',alignItems:'center',justifyContent:'space-between',flexShrink:0}}>
