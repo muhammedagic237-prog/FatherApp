@@ -35,6 +35,10 @@
     @keyframes luxFadeOut{0%{opacity:1;filter:blur(0)}100%{opacity:0;filter:blur(3px)}}
     @keyframes luxOrb{0%,100%{transform:translate(0,0) scale(1);opacity:0.08}50%{transform:translate(20px,-15px) scale(1.15);opacity:0.15}}
     @keyframes luxShimmer{0%{background-position:-400px 0}100%{background-position:400px 0}}
+    @keyframes luxRay{0%{opacity:0;transform:scaleY(0)}30%{opacity:0.08}70%{opacity:0.08}100%{opacity:0;transform:scaleY(1.2)}}
+    @keyframes luxRippleBurst{0%{r:8;opacity:0.5;stroke-width:2}100%{r:120;opacity:0;stroke-width:0.3}}
+    @keyframes luxFirefly{0%{opacity:0;transform:translate(0,0)}25%{opacity:0.9}75%{opacity:0.9}100%{opacity:0;transform:translate(var(--tx),var(--ty))}}
+    @keyframes luxBubble{0%{opacity:0;transform:translateY(0) scale(0.5)}30%{opacity:0.6}80%{opacity:0.4}100%{opacity:0;transform:translateY(-80px) scale(1)}}
   </style>
 </head>
 <body>
@@ -59,8 +63,8 @@ const TIMELINES = ['Urgent (1-2 weeks)','1-3 months','3-6 months','6-12 months']
 function SplashScreen({ onDone }) {
   const [fading, setFading] = useState(false);
   useEffect(() => {
-    const t1 = setTimeout(() => setFading(true), 2000);
-    const t2 = setTimeout(onDone, 2500);
+    const t1 = setTimeout(() => setFading(true), 3000);
+    const t2 = setTimeout(onDone, 3500);
     return () => { clearTimeout(t1); clearTimeout(t2); };
   }, []);
 
@@ -95,6 +99,46 @@ function SplashScreen({ onDone }) {
       display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',
       animation: fading ? 'luxFadeOut 0.5s ease-in forwards' : 'none'
     }}>
+
+      {/* Light rays from top */}
+      {[15,35,55,75].map((l,i) => (
+        <div key={'ray'+i} style={{
+          position:'absolute',left:l+'%',top:0,width:2,height:'60%',
+          background:'linear-gradient(180deg, rgba(167,243,208,0.12), transparent)',
+          transformOrigin:'top center',opacity:0,
+          animation:`luxRay ${3+i*0.5}s ease-in-out ${0.5+i*0.4}s infinite`,
+          pointerEvents:'none'
+        }} />
+      ))}
+
+      {/* Firefly particles */}
+      {Array.from({length:12},(_,i)=>i).map(i => {
+        const tx = -40+Math.random()*80;
+        const ty = -40+Math.random()*80;
+        return (
+          <div key={'ff'+i} style={{
+            position:'absolute',left:(10+Math.random()*80)+'%',top:(10+Math.random()*80)+'%',
+            width:3+Math.random()*3,height:3+Math.random()*3,borderRadius:'50%',
+            background:'rgba(167,243,208,0.9)',
+            boxShadow:'0 0 8px rgba(134,239,172,0.6), 0 0 16px rgba(34,197,94,0.3)',
+            '--tx':tx+'px','--ty':ty+'px',
+            animation:`luxFirefly ${2+Math.random()*2}s ease-in-out ${Math.random()*3}s infinite`,
+            pointerEvents:'none'
+          }} />
+        );
+      })}
+
+      {/* Rising bubbles */}
+      {Array.from({length:8},(_,i)=>i).map(i => (
+        <div key={'bub'+i} style={{
+          position:'absolute',left:(20+Math.random()*60)+'%',bottom:0,
+          width:6+Math.random()*8,height:6+Math.random()*8,borderRadius:'50%',
+          border:'1px solid rgba(167,243,208,0.25)',
+          background:'radial-gradient(circle at 30% 30%, rgba(167,243,208,0.15), transparent)',
+          animation:`luxBubble ${3+Math.random()*2}s ease-out ${Math.random()*3}s infinite`,
+          pointerEvents:'none'
+        }} />
+      ))}
 
       {/* Ambient floating orbs */}
       {orbs.map(o => (
@@ -218,12 +262,29 @@ function SplashScreen({ onDone }) {
         </svg>
       </div>
 
+      {/* Ripple burst ring behind everything */}
+      <svg style={{position:'absolute',top:'50%',left:'50%',transform:'translate(-50%,-50%)',width:300,height:300,pointerEvents:'none',opacity:0,animation:'fadeIn 0.3s ease-out 1.8s forwards'}}>
+        <circle cx="150" cy="150" r="8" fill="none" stroke="rgba(134,239,172,0.4)" strokeWidth="1.5"
+          style={{animation:'luxRippleBurst 2s ease-out 2s infinite'}} />
+        <circle cx="150" cy="150" r="8" fill="none" stroke="rgba(34,197,94,0.3)" strokeWidth="1"
+          style={{animation:'luxRippleBurst 2s ease-out 2.4s infinite'}} />
+        <circle cx="150" cy="150" r="8" fill="none" stroke="rgba(6,182,212,0.2)" strokeWidth="0.8"
+          style={{animation:'luxRippleBurst 2s ease-out 2.8s infinite'}} />
+      </svg>
+
       {/* Tagline */}
       <div style={{
-        fontFamily:'Inter,sans-serif',fontWeight:300,fontSize:11,
-        color:'rgba(167,243,208,0.3)',letterSpacing:5,textTransform:'uppercase',
-        marginTop:24,opacity:0,animation:'fadeIn 0.5s ease-out 1.6s forwards'
+        fontFamily:'Inter,sans-serif',fontWeight:300,fontSize:12,
+        color:'rgba(167,243,208,0.35)',letterSpacing:6,textTransform:'uppercase',
+        marginTop:24,opacity:0,animation:'fadeIn 0.6s ease-out 1.6s forwards'
       }}>Wastewater Treatment Solutions</div>
+
+      {/* "by Mensud Agic" signature */}
+      <div style={{
+        fontFamily:'Inter,sans-serif',fontWeight:300,fontStyle:'italic',fontSize:10,
+        color:'rgba(167,243,208,0.2)',letterSpacing:2,
+        marginTop:10,opacity:0,animation:'fadeIn 0.5s ease-out 2s forwards'
+      }}>by Mensud Agic</div>
     </div>
   );
 }

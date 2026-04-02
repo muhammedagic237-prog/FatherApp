@@ -123,8 +123,8 @@ function fmtEUR(v) { return new Intl.NumberFormat('de-DE',{style:'currency',curr
 function SplashScreen({ onDone }) {
   const [fading, setFading] = useState(false);
   useEffect(() => {
-    const t1 = setTimeout(() => setFading(true), 2000);
-    const t2 = setTimeout(onDone, 2500);
+    const t1 = setTimeout(() => setFading(true), 3000);
+    const t2 = setTimeout(onDone, 3500);
     return () => { clearTimeout(t1); clearTimeout(t2); };
   }, []);
 
