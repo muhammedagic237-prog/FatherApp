@@ -21,6 +21,20 @@
     @keyframes successPop { 0%{opacity:0;transform:scale(0.8)} 50%{transform:scale(1.05)} 100%{opacity:1;transform:scale(1)} }
     .slide-in { animation: slideIn 0.3s ease-out; }
     .success-pop { animation: successPop 0.4s ease-out; }
+
+    /* LUXURY SPLASH */
+    @keyframes luxLogoIn{0%{opacity:0;transform:scale(0.6) translateY(30px);filter:blur(8px)}60%{opacity:1;transform:scale(1.02) translateY(0);filter:blur(0)}100%{opacity:1;transform:scale(1) translateY(0);filter:blur(0)}}
+    @keyframes luxTextReveal{0%{opacity:0;letter-spacing:20px;filter:blur(4px)}100%{opacity:1;letter-spacing:8px;filter:blur(0)}}
+    @keyframes luxSubReveal{0%{opacity:0;transform:translateY(8px);letter-spacing:8px}100%{opacity:1;transform:translateY(0);letter-spacing:3px}}
+    @keyframes luxLine{0%{width:0;opacity:0}100%{width:180px;opacity:1}}
+    @keyframes luxGlow{0%,100%{box-shadow:0 0 30px rgba(134,239,172,0.15),0 0 60px rgba(34,197,94,0.08)}50%{box-shadow:0 0 50px rgba(134,239,172,0.3),0 0 100px rgba(34,197,94,0.15)}}
+    @keyframes luxSparkle{0%{opacity:0;transform:scale(0) rotate(0)}30%{opacity:1;transform:scale(1) rotate(60deg)}100%{opacity:0;transform:scale(0.5) rotate(180deg)}}
+    @keyframes luxLeafFloat{0%{opacity:0;transform:translateY(20px) rotate(-15deg) scale(0.5)}30%{opacity:0.7}70%{opacity:0.7}100%{opacity:0;transform:translateY(-40px) rotate(15deg) scale(0.8)}}
+    @keyframes luxRiverFlow{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+    @keyframes luxDropSplash{0%{r:4;opacity:0.7;stroke-width:2}100%{r:30;opacity:0;stroke-width:0.5}}
+    @keyframes luxFadeOut{0%{opacity:1;filter:blur(0)}100%{opacity:0;filter:blur(3px)}}
+    @keyframes luxOrb{0%,100%{transform:translate(0,0) scale(1);opacity:0.08}50%{transform:translate(20px,-15px) scale(1.15);opacity:0.15}}
+    @keyframes luxShimmer{0%{background-position:-400px 0}100%{background-position:400px 0}}
   </style>
 </head>
 <body>
@@ -41,7 +55,7 @@ const CATEGORIES = [
 const BUDGETS = ['Under 5,000','5,000 - 10,000','10,000 - 25,000','25,000 - 50,000','50,000+'];
 const TIMELINES = ['Urgent (1-2 weeks)','1-3 months','3-6 months','6-12 months'];
 
-/* ── SPLASH SCREEN ── */
+/* ── LUXURY SPLASH SCREEN ── */
 function SplashScreen({ onDone }) {
   const [fading, setFading] = useState(false);
   useEffect(() => {
@@ -50,29 +64,166 @@ function SplashScreen({ onDone }) {
     return () => { clearTimeout(t1); clearTimeout(t2); };
   }, []);
 
+  // Sparkle particles
+  const sparkles = useMemo(() => Array.from({length:24}, (_,i) => ({
+    i, left:5+Math.random()*90, top:5+Math.random()*90,
+    size:3+Math.random()*6, delay:Math.random()*2.5, dur:1.2+Math.random()*1.8
+  })), []);
+
+  // Floating eco leaves
+  const leaves = useMemo(() => Array.from({length:10}, (_,i) => ({
+    i, left:Math.random()*100, top:15+Math.random()*70,
+    size:12+Math.random()*16, delay:0.3+Math.random()*2, dur:2.5+Math.random()*2,
+    emoji:['🌿','🍃','🌱','☘️','🍀'][i%5]
+  })), []);
+
+  // Ambient orbs
+  const orbs = useMemo(() => Array.from({length:4}, (_,i) => ({
+    i, left:15+i*22, top:20+Math.random()*60,
+    size:120+Math.random()*180, delay:i*0.8, dur:4+Math.random()*3
+  })), []);
+
+  // River splash drops
+  const drops = useMemo(() => Array.from({length:7}, (_,i) => ({
+    i, cx:40+Math.random()*520, cy:15+Math.random()*60, delay:i*0.35
+  })), []);
+
   return (
     <div style={{
       position:'fixed',inset:0,zIndex:9999,overflow:'hidden',
-      background:'linear-gradient(160deg, #0a2e1a 0%, #0d3b2a 30%, #0e4a3a 60%, #0a3d3d 100%)',
+      background:'linear-gradient(155deg, #041a0e 0%, #0a2e1a 20%, #0d3b2a 45%, #0b4040 70%, #0a3535 100%)',
       display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',
-      opacity: fading ? 0 : 1, transition:'opacity 0.5s ease-in'
+      animation: fading ? 'luxFadeOut 0.5s ease-in forwards' : 'none'
     }}>
-      {/* Sparkles */}
-      {Array.from({length:16},(_,i)=>i).map(i => (
-        <div key={i} style={{
-          position:'absolute',left:(8+Math.random()*84)+'%',top:(8+Math.random()*84)+'%',
-          width:4+Math.random()*6,height:4+Math.random()*6,borderRadius:'50%',
-          background:'radial-gradient(circle,rgba(134,239,172,0.9),transparent 70%)',
-          animation:`fadeIn ${1+Math.random()*1.5}s ease-in-out ${Math.random()*2}s infinite alternate`,
+
+      {/* Ambient floating orbs */}
+      {orbs.map(o => (
+        <div key={o.i} style={{
+          position:'absolute',left:o.left+'%',top:o.top+'%',
+          width:o.size,height:o.size,borderRadius:'50%',
+          background:'radial-gradient(circle, rgba(34,197,94,0.12) 0%, transparent 70%)',
+          animation:`luxOrb ${o.dur}s ease-in-out ${o.delay}s infinite`,
           pointerEvents:'none'
         }} />
       ))}
-      {/* Logo */}
-      <div style={{width:'min(50vw,360px)',opacity:0,animation:'slideIn 1s ease-out 0.2s forwards'}}>
-        {typeof SPLASH_LOGO!=='undefined' && <img src={SPLASH_LOGO} alt="AGM" style={{width:'100%',filter:'drop-shadow(0 10px 40px rgba(134,239,172,0.3))'}} />}
+
+      {/* Green sparkle particles */}
+      {sparkles.map(s => (
+        <div key={s.i} style={{
+          position:'absolute',left:s.left+'%',top:s.top+'%',pointerEvents:'none'
+        }}>
+          <div style={{
+            width:s.size,height:s.size,
+            background:'radial-gradient(circle, rgba(167,243,208,0.95) 0%, rgba(74,222,128,0.4) 40%, transparent 70%)',
+            borderRadius:'50%',
+            boxShadow:`0 0 ${s.size*2}px rgba(134,239,172,0.3)`,
+            animation:`luxSparkle ${s.dur}s ease-in-out ${s.delay}s infinite`
+          }} />
+        </div>
+      ))}
+
+      {/* Floating leaves */}
+      {leaves.map(l => (
+        <div key={l.i} style={{
+          position:'absolute',left:l.left+'%',top:l.top+'%',
+          fontSize:l.size,opacity:0,
+          animation:`luxLeafFloat ${l.dur}s ease-in-out ${l.delay}s infinite`,
+          pointerEvents:'none',filter:'drop-shadow(0 2px 4px rgba(0,0,0,0.3))'
+        }}>{l.emoji}</div>
+      ))}
+
+      {/* Logo with glow frame */}
+      <div style={{
+        width:'min(45vw, 340px)',opacity:0,position:'relative',
+        animation:'luxLogoIn 1.2s cubic-bezier(0.16,1,0.3,1) 0.15s forwards'
+      }}>
+        <div style={{
+          position:'absolute',inset:-12,borderRadius:24,
+          animation:'luxGlow 3s ease-in-out infinite',
+          pointerEvents:'none'
+        }} />
+        {typeof SPLASH_LOGO!=='undefined' && (
+          <img src={SPLASH_LOGO} alt="AGM" style={{
+            width:'100%',height:'auto',position:'relative',zIndex:1,
+            filter:'drop-shadow(0 15px 50px rgba(134,239,172,0.25))'
+          }} />
+        )}
       </div>
-      <div style={{fontWeight:300,fontSize:13,color:'rgba(167,243,208,0.4)',letterSpacing:5,textTransform:'uppercase',
-        marginTop:24,opacity:0,animation:'slideIn 0.6s ease-out 1s forwards'}}>Wastewater Treatment Solutions</div>
+
+      {/* "A G M" luxury text */}
+      <div style={{
+        fontFamily:'Inter,sans-serif',fontWeight:900,fontSize:'clamp(48px,8vw,80px)',
+        color:'#fff',letterSpacing:20,lineHeight:1,marginTop:16,opacity:0,
+        textShadow:'0 2px 30px rgba(134,239,172,0.2), 0 0 80px rgba(34,197,94,0.1)',
+        animation:'luxTextReveal 1s ease-out 0.5s forwards'
+      }}>A G M</div>
+
+      {/* Gold shimmer line */}
+      <div style={{
+        width:0,height:1,marginTop:14,opacity:0,
+        background:'linear-gradient(90deg, transparent, rgba(167,243,208,0.6), rgba(255,255,255,0.3), rgba(167,243,208,0.6), transparent)',
+        animation:'luxLine 0.8s ease-out 0.9s forwards'
+      }} />
+
+      {/* "ECOSOLUTIONS" subtitle */}
+      <div style={{
+        fontFamily:'Inter,sans-serif',fontWeight:300,fontSize:'clamp(18px,3.5vw,30px)',
+        color:'#a7f3d0',letterSpacing:8,marginTop:12,opacity:0,
+        textShadow:'0 1px 15px rgba(167,243,208,0.2)',
+        animation:'luxSubReveal 0.8s ease-out 1.1s forwards'
+      }}>ECOSOLUTIONS</div>
+
+      {/* Flowing River SVG */}
+      <div style={{
+        width:'min(90vw,600px)',height:100,marginTop:28,position:'relative',overflow:'hidden',
+        borderRadius:20,opacity:0,
+        animation:'fadeIn 0.8s ease-out 1.3s forwards'
+      }}>
+        <svg width="1200" height="100" style={{position:'absolute',top:0,left:0,animation:'luxRiverFlow 4s linear infinite'}}>
+          <defs>
+            <linearGradient id="rGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="rgba(20,184,166,0.5)" />
+              <stop offset="25%" stopColor="rgba(34,197,94,0.6)" />
+              <stop offset="50%" stopColor="rgba(6,182,212,0.55)" />
+              <stop offset="75%" stopColor="rgba(34,197,94,0.6)" />
+              <stop offset="100%" stopColor="rgba(20,184,166,0.5)" />
+            </linearGradient>
+            <linearGradient id="rHighlight" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="rgba(167,243,208,0.35)" />
+              <stop offset="100%" stopColor="transparent" />
+            </linearGradient>
+          </defs>
+          {/* Deep water */}
+          <path d="M0,40 Q40,20 80,40 T160,40 T240,40 T320,40 T400,40 T480,40 T560,40 T640,40 T720,40 T800,40 T880,40 T960,40 T1040,40 T1120,40 T1200,40 L1200,100 L0,100 Z"
+            fill="url(#rGrad)" />
+          {/* Mid highlight */}
+          <path d="M0,35 Q35,18 70,35 T140,35 T210,35 T280,35 T350,35 T420,35 T490,35 T560,35 T630,35 T700,35 T770,35 T840,35 T910,35 T980,35 T1050,35 T1120,35 T1200,35 L1200,60 L0,60 Z"
+            fill="url(#rHighlight)" opacity="0.6" />
+          {/* Surface shimmer */}
+          <path d="M0,42 Q50,30 100,42 T200,42 T300,42 T400,42 T500,42 T600,42 T700,42 T800,42 T900,42 T1000,42 T1100,42 T1200,42 L1200,55 L0,55 Z"
+            fill="rgba(167,243,208,0.12)" />
+          {/* Foam specks */}
+          {[50,130,210,290,370,450,530,610,690,770,850,930,1010,1090,1170].map((cx,i) => (
+            <circle key={i} cx={cx} cy={38+Math.sin(i*0.8)*4} r={1+Math.random()*1.5}
+              fill={`rgba(255,255,255,${0.15+Math.random()*0.15})`} />
+          ))}
+        </svg>
+        {/* Splash droplet rings */}
+        <svg width="600" height="100" style={{position:'absolute',top:0,left:'50%',transform:'translateX(-50%)'}}>
+          {drops.map(d => (
+            <circle key={d.i} cx={d.cx} cy={d.cy} r="4" fill="none"
+              stroke="rgba(167,243,208,0.6)" strokeWidth="1.5"
+              style={{animation:`luxDropSplash 0.6s ease-out ${d.delay}s infinite`}} />
+          ))}
+        </svg>
+      </div>
+
+      {/* Tagline */}
+      <div style={{
+        fontFamily:'Inter,sans-serif',fontWeight:300,fontSize:11,
+        color:'rgba(167,243,208,0.3)',letterSpacing:5,textTransform:'uppercase',
+        marginTop:24,opacity:0,animation:'fadeIn 0.5s ease-out 1.6s forwards'
+      }}>Wastewater Treatment Solutions</div>
     </div>
   );
 }
