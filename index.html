@@ -3,678 +3,403 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AGM Offer Generator — Wastewater Treatment Equipment</title>
-  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <title>AGM Eco Solutions — Quick Quote</title>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" />
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            forest: { 50:'#f0fdf4', 100:'#dcfce7', 200:'#bbf7d0', 300:'#86efac', 400:'#4ade80', 500:'#22c55e', 600:'#16a34a', 700:'#15803d', 800:'#166534', 900:'#14532d', 950:'#052e16' },
-            sage: { 50:'#f6f7f4', 100:'#e8ebe3', 200:'#d2d8c8', 300:'#b3bda3', 400:'#94a17e', 500:'#788964', 600:'#5f6e4e', 700:'#4b5740', 800:'#3e4736', 900:'#353d2f' },
-            cream: { 50:'#fefef9', 100:'#fdfcf0', 200:'#faf8e1', 300:'#f5f0c8' }
-          }
-        }
-      }
-    }
-  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
     body { font-family:'Inter',sans-serif; background:#f6f7f4; }
-    .playfair { font-family:'Playfair Display',serif; }
-    .fade-in { animation: fadeIn 0.3s ease-out; }
-    .slide-up { animation: slideUp 0.4s ease-out; }
-    .scale-in { animation: scaleIn 0.3s ease-out; }
+    ::-webkit-scrollbar { width:6px; }
+    ::-webkit-scrollbar-track { background:rgba(0,0,0,0.1); }
+    ::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.25); border-radius:3px; }
+    @keyframes spin { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
+    @keyframes slideIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
     @keyframes fadeIn { from{opacity:0} to{opacity:1} }
-    @keyframes slideUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
-    @keyframes scaleIn { from{opacity:0;transform:scale(0.9)} to{opacity:1;transform:scale(1)} }
-    .product-card:hover { transform:translateY(-4px); box-shadow:0 12px 40px rgba(20,83,45,0.15); }
-    .product-card { transition: transform 0.25s ease, box-shadow 0.25s ease; }
-    .btn-primary { transition: all 0.2s ease; }
-    .btn-primary:hover { transform:translateY(-1px); box-shadow:0 6px 20px rgba(21,128,61,0.3); }
-    .search-glow:focus { box-shadow:0 0 0 3px rgba(34,197,94,0.2), 0 4px 20px rgba(20,83,45,0.1); }
-    input[type="number"]::-webkit-inner-spin-button,
-    input[type="number"]::-webkit-outer-spin-button { -webkit-appearance:none; margin:0; }
-    input[type="number"] { -moz-appearance:textfield; }
-    @media print { .no-print{display:none!important} }
-    .offer-item { transition: all 0.3s ease; }
-    .offer-item:hover { background: #f0fdf4; }
+    @keyframes successPop { 0%{opacity:0;transform:scale(0.8)} 50%{transform:scale(1.05)} 100%{opacity:1;transform:scale(1)} }
+    .slide-in { animation: slideIn 0.3s ease-out; }
+    .success-pop { animation: successPop 0.4s ease-out; }
   </style>
 </head>
 <body>
-<div id="app">
+<div id="root"></div>
+<script src="splash_logo.js"></script>
+<script type="text/babel">
+const { useState, useCallback, useEffect, useMemo } = React;
 
-  <!-- HEADER -->
-  <header class="bg-gradient-to-r from-forest-900 via-forest-800 to-forest-900 shadow-xl sticky top-0 z-50">
-    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-      <div class="flex items-center gap-4">
-        <div class="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center backdrop-blur">
-          <span class="text-2xl">&#9851;</span>
-        </div>
+const CATEGORIES = [
+  { name:'Construction Sites', icon:'🏗️', desc:'Site preparation, foundations, drainage' },
+  { name:'Industrial Plants', icon:'🏭', desc:'Wastewater treatment for factories' },
+  { name:'Agriculture', icon:'🌾', desc:'Farm runoff, irrigation water treatment' },
+  { name:'Water Management', icon:'💧', desc:'Municipal water systems, reservoirs' },
+  { name:'Waste Management', icon:'♻️', desc:'Waste processing, recycling facilities' },
+  { name:'Environmental Compliance', icon:'📋', desc:'Regulatory audits, certifications' }
+];
+
+const BUDGETS = ['Under 5,000','5,000 - 10,000','10,000 - 25,000','25,000 - 50,000','50,000+'];
+const TIMELINES = ['Urgent (1-2 weeks)','1-3 months','3-6 months','6-12 months'];
+
+/* ── SPLASH SCREEN ── */
+function SplashScreen({ onDone }) {
+  const [fading, setFading] = useState(false);
+  useEffect(() => {
+    const t1 = setTimeout(() => setFading(true), 2000);
+    const t2 = setTimeout(onDone, 2500);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, []);
+
+  return (
+    <div style={{
+      position:'fixed',inset:0,zIndex:9999,overflow:'hidden',
+      background:'linear-gradient(160deg, #0a2e1a 0%, #0d3b2a 30%, #0e4a3a 60%, #0a3d3d 100%)',
+      display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',
+      opacity: fading ? 0 : 1, transition:'opacity 0.5s ease-in'
+    }}>
+      {/* Sparkles */}
+      {Array.from({length:16},(_,i)=>i).map(i => (
+        <div key={i} style={{
+          position:'absolute',left:(8+Math.random()*84)+'%',top:(8+Math.random()*84)+'%',
+          width:4+Math.random()*6,height:4+Math.random()*6,borderRadius:'50%',
+          background:'radial-gradient(circle,rgba(134,239,172,0.9),transparent 70%)',
+          animation:`fadeIn ${1+Math.random()*1.5}s ease-in-out ${Math.random()*2}s infinite alternate`,
+          pointerEvents:'none'
+        }} />
+      ))}
+      {/* Logo */}
+      <div style={{width:'min(50vw,360px)',opacity:0,animation:'slideIn 1s ease-out 0.2s forwards'}}>
+        {typeof SPLASH_LOGO!=='undefined' && <img src={SPLASH_LOGO} alt="AGM" style={{width:'100%',filter:'drop-shadow(0 10px 40px rgba(134,239,172,0.3))'}} />}
+      </div>
+      <div style={{fontWeight:300,fontSize:13,color:'rgba(167,243,208,0.4)',letterSpacing:5,textTransform:'uppercase',
+        marginTop:24,opacity:0,animation:'slideIn 0.6s ease-out 1s forwards'}}>Wastewater Treatment Solutions</div>
+    </div>
+  );
+}
+
+/* ── FOLDER ITEM ── */
+function FolderItem({ cat, selected, onClick }) {
+  const [hovered, setHovered] = useState(false);
+  const isActive = selected || hovered;
+  return (
+    <div
+      role="button"
+      onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        width:220,maxWidth:'100%',height:70,borderRadius:8,padding:12,
+        display:'flex',alignItems:'center',gap:12,cursor:'pointer',
+        background: selected ? 'rgb(72,180,100)' : isActive ? 'rgb(59,160,75)' : 'rgb(46,130,60)',
+        border: selected ? '2px solid rgb(100,210,130)' : '2px solid rgb(25,70,32)',
+        boxShadow: isActive ? '0 4px 8px rgba(0,0,0,0.2)' : '0 2px 4px rgba(0,0,0,0.1)',
+        transition:'all 0.25s ease',
+        transform: isActive && !selected ? 'translateX(4px)' : 'none'
+      }}
+    >
+      <span style={{fontSize:24,flexShrink:0}}>{cat.icon}</span>
+      <div style={{minWidth:0}}>
+        <div style={{color:'#fff',fontSize:16,fontWeight:600,lineHeight:1.2}}>{cat.name}</div>
+        <div style={{color:'rgba(255,255,255,0.55)',fontSize:11,marginTop:2,lineHeight:1.2,
+          overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{cat.desc}</div>
+      </div>
+      {selected && <span style={{marginLeft:'auto',fontSize:16,flexShrink:0}}>✓</span>}
+    </div>
+  );
+}
+
+/* ── FORM FIELD ── */
+function Field({ label, children, required }) {
+  return (
+    <div style={{marginBottom:12}}>
+      <label style={{display:'block',fontSize:12,fontWeight:600,color:'rgb(34,97,45)',marginBottom:4}}>
+        {label} {required && <span style={{color:'#dc2626'}}>*</span>}
+      </label>
+      {children}
+    </div>
+  );
+}
+
+function inputStyle(focused) {
+  return {
+    width:'100%',padding:10,fontSize:14,fontFamily:'Inter,sans-serif',
+    background:'#fff',
+    border: focused ? '1px solid rgb(34,97,45)' : '1px solid rgb(200,200,200)',
+    borderRadius:4,outline:'none',
+    boxShadow: focused ? '0 0 4px rgba(34,97,45,0.3)' : 'none',
+    transition:'border 0.2s, box-shadow 0.2s'
+  };
+}
+
+function TextInput({ value, onChange, placeholder, type='text', required }) {
+  const [focused, setFocused] = useState(false);
+  return (
+    <input type={type} value={value} onChange={e=>onChange(e.target.value)}
+      placeholder={placeholder} required={required}
+      onFocus={()=>setFocused(true)} onBlur={()=>setFocused(false)}
+      style={inputStyle(focused)} />
+  );
+}
+
+function TextArea({ value, onChange, placeholder, rows=4 }) {
+  const [focused, setFocused] = useState(false);
+  return (
+    <textarea value={value} onChange={e=>onChange(e.target.value)}
+      placeholder={placeholder} rows={rows}
+      onFocus={()=>setFocused(true)} onBlur={()=>setFocused(false)}
+      style={{...inputStyle(focused),resize:'vertical',fontFamily:'Inter,sans-serif'}} />
+  );
+}
+
+function Select({ value, onChange, options, placeholder }) {
+  const [focused, setFocused] = useState(false);
+  return (
+    <select value={value} onChange={e=>onChange(e.target.value)}
+      onFocus={()=>setFocused(true)} onBlur={()=>setFocused(false)}
+      style={{...inputStyle(focused),cursor:'pointer',color:value?'#111':'#9ca3af'}}>
+      <option value="" disabled>{placeholder}</option>
+      {options.map(o => <option key={o} value={o}>{o}</option>)}
+    </select>
+  );
+}
+
+/* ── MAIN APP ── */
+function App() {
+  const [splash, setSplash] = useState(true);
+  const [selectedCat, setSelectedCat] = useState(null);
+  const [form, setForm] = useState({
+    projectName:'', location:'', scope:'', budget:'', timeline:'',
+    contactName:'', contactEmail:'', contactPhone:''
+  });
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+
+  const uf = (field, val) => setForm(p => ({...p, [field]:val}));
+
+  const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.contactEmail);
+  const phoneValid = form.contactPhone.replace(/\D/g,'').length >= 10;
+  const isValid = selectedCat !== null &&
+    form.projectName.trim() && form.location.trim() && form.scope.trim() &&
+    form.budget && form.timeline &&
+    form.contactName.trim() && emailValid && phoneValid;
+
+  const handleSubmit = useCallback((e) => {
+    e.preventDefault();
+    if (!isValid) return;
+    setSubmitting(true);
+    const data = { category: CATEGORIES[selectedCat].name, ...form };
+    console.log('Quote submitted:', data);
+    setTimeout(() => {
+      setSubmitting(false);
+      setSubmitted(true);
+      setForm(p => ({...p, projectName:'',location:'',scope:'',budget:'',timeline:'',
+        contactName:'',contactEmail:'',contactPhone:''}));
+      setTimeout(() => setSubmitted(false), 4000);
+    }, 1000);
+  }, [isValid, form, selectedCat]);
+
+  if (splash) return <SplashScreen onDone={() => setSplash(false)} />;
+
+  return (
+    <div style={{minHeight:'100vh',display:'flex',flexDirection:'column'}}>
+      {/* Header */}
+      <header style={{
+        background:'linear-gradient(90deg, rgb(20,60,30), rgb(34,97,45), rgb(20,60,30))',
+        padding:'14px 24px',display:'flex',alignItems:'center',gap:16,
+        boxShadow:'0 2px 12px rgba(0,0,0,0.2)'
+      }}>
+        {typeof SPLASH_LOGO!=='undefined' && <img src={SPLASH_LOGO} alt="AGM" style={{height:44,objectFit:'contain',filter:'brightness(1.1)'}} />}
         <div>
-          <h1 class="playfair text-2xl font-bold text-white tracking-tight">AGM Offer Generator</h1>
-          <p class="text-forest-300 text-xs tracking-widest uppercase mt-0.5">Wastewater Treatment Equipment</p>
+          <div style={{color:'#fff',fontSize:20,fontWeight:800,letterSpacing:1}}>AGM Eco Solutions</div>
+          <div style={{color:'rgba(167,243,208,0.6)',fontSize:11,letterSpacing:3,textTransform:'uppercase'}}>Quick Quote Generator</div>
         </div>
-      </div>
-      <div class="flex items-center gap-3">
-        <div v-if="companyLogo" class="w-10 h-10 rounded-lg overflow-hidden bg-white/10">
-          <img :src="companyLogo" class="w-full h-full object-contain" />
-        </div>
-        <div class="text-right hidden sm:block">
-          <div class="text-white text-sm font-medium">{{ company.name || 'Your Company' }}</div>
-          <div class="text-forest-400 text-xs">{{ company.email || 'email@company.com' }}</div>
-        </div>
-      </div>
-    </div>
-  </header>
+      </header>
 
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+      {/* Main Content */}
+      <div style={{flex:1,display:'flex',flexWrap:'wrap'}}>
 
-    <!-- SEARCH BAR -->
-    <div class="mb-8 fade-in">
-      <div class="relative max-w-2xl mx-auto">
-        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-          <svg class="w-5 h-5 text-forest-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-          </svg>
+        {/* LEFT — Service Menu */}
+        <div style={{
+          width:'50%',minWidth:280,flex:'1 1 50%',
+          background:'rgb(34,97,45)',
+          padding:'28px 20px',
+          overflowY:'auto',scrollBehavior:'smooth',
+          display:'flex',flexDirection:'column',alignItems:'center'
+        }}>
+          <div style={{color:'rgba(255,255,255,0.5)',fontSize:11,fontWeight:600,letterSpacing:3,
+            textTransform:'uppercase',marginBottom:16,textAlign:'center'}}>Select Service Category</div>
+
+          <div style={{display:'flex',flexDirection:'column',gap:12,width:'100%',maxWidth:240,alignItems:'center'}}>
+            {CATEGORIES.map((cat, i) => (
+              <FolderItem key={i} cat={cat} selected={selectedCat===i}
+                onClick={() => setSelectedCat(i)} />
+            ))}
+          </div>
+
+          {/* Decorative */}
+          <div style={{marginTop:'auto',paddingTop:40,textAlign:'center'}}>
+            <div style={{fontSize:40,opacity:0.15}}>♻️</div>
+            <div style={{color:'rgba(255,255,255,0.15)',fontSize:10,letterSpacing:2,marginTop:8}}>ECO SOLUTIONS</div>
+          </div>
         </div>
-        <input v-model="searchQuery" type="text"
-          placeholder="Search wastewater treatment products..."
-          class="search-glow w-full pl-12 pr-4 py-4 bg-white border-2 border-forest-100 rounded-2xl text-forest-900 placeholder-sage-400 text-lg focus:outline-none focus:border-forest-400 transition-all shadow-sm" />
-        <div v-if="searchQuery" class="absolute inset-y-0 right-0 pr-4 flex items-center">
-          <button @click="searchQuery=''" class="text-sage-400 hover:text-forest-600 transition-colors">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+
+        {/* RIGHT — Quick Offer Form */}
+        <div style={{
+          width:'50%',minWidth:320,flex:'1 1 50%',
+          background:'#fff',
+          padding:24,
+          overflowY:'auto'
+        }}>
+          <h2 style={{fontSize:20,fontWeight:700,color:'rgb(34,97,45)',marginBottom:16,
+            display:'flex',alignItems:'center',gap:8}}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgb(34,97,45)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
             </svg>
-          </button>
-        </div>
-      </div>
-      <p class="text-center text-sage-500 text-sm mt-2">{{ filteredProducts.length }} product{{ filteredProducts.length !== 1 ? 's' : '' }} found</p>
-    </div>
+            Quick Quote
+          </h2>
 
-    <!-- PRODUCT GRID -->
-    <div class="mb-12">
-      <h2 class="playfair text-xl font-bold text-forest-900 mb-4 flex items-center gap-2">
-        <svg class="w-5 h-5 text-forest-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
-        </svg>
-        Product Catalog
-      </h2>
-      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-        <div v-for="product in filteredProducts" :key="product.filename"
-          @click="addToOffer(product)"
-          class="product-card bg-white rounded-2xl overflow-hidden cursor-pointer border border-forest-50 shadow-sm group">
-          <div class="aspect-square bg-sage-50 p-2 flex items-center justify-center overflow-hidden">
-            <img :src="product.path" :alt="product.name" class="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform duration-300" />
-          </div>
-          <div class="p-3">
-            <p class="text-xs font-semibold text-forest-800 leading-tight line-clamp-2">{{ product.name }}</p>
-            <div class="flex items-center gap-1 mt-2">
-              <svg class="w-3.5 h-3.5 text-forest-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-              </svg>
-              <span class="text-[10px] text-forest-500 font-medium uppercase tracking-wider">Add to offer</span>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div v-if="filteredProducts.length === 0" class="text-center py-16">
-        <div class="text-6xl mb-4">&#128269;</div>
-        <p class="text-sage-500 text-lg">No products match your search</p>
-        <p class="text-sage-400 text-sm mt-1">Try a different keyword</p>
-      </div>
-    </div>
-
-    <!-- DIVIDER -->
-    <div v-if="offerItems.length > 0" class="relative mb-10">
-      <div class="absolute inset-0 flex items-center"><div class="w-full border-t-2 border-forest-100"></div></div>
-      <div class="relative flex justify-center">
-        <span class="bg-sage-50 px-6 py-1 text-forest-700 font-semibold text-sm uppercase tracking-widest rounded-full border border-forest-100">Offer Template</span>
-      </div>
-    </div>
-
-    <!-- OFFER SECTION -->
-    <div v-if="offerItems.length > 0" class="slide-up">
-
-      <!-- Company Info -->
-      <div class="bg-white rounded-3xl shadow-lg border border-forest-50 p-6 sm:p-8 mb-6">
-        <h3 class="playfair text-lg font-bold text-forest-900 mb-6 flex items-center gap-2">
-          <svg class="w-5 h-5 text-forest-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
-          </svg>
-          Company Information
-        </h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <div>
-            <label class="block text-xs font-semibold text-sage-600 uppercase tracking-wider mb-1.5">Company Name</label>
-            <input v-model="company.name" type="text" placeholder="Your company name"
-              class="w-full px-4 py-3 bg-sage-50 border border-sage-200 rounded-xl text-forest-900 placeholder-sage-400 focus:outline-none focus:border-forest-400 focus:bg-white transition-all" />
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-sage-600 uppercase tracking-wider mb-1.5">Company Logo</label>
-            <div class="flex items-center gap-3">
-              <label class="flex-1 px-4 py-3 bg-sage-50 border border-sage-200 rounded-xl text-sage-500 cursor-pointer hover:border-forest-400 transition-all text-sm flex items-center gap-2">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                </svg>
-                {{ companyLogo ? 'Logo uploaded' : 'Upload logo...' }}
-                <input type="file" accept="image/*" @change="onLogoUpload" class="hidden" />
-              </label>
-              <div v-if="companyLogo" class="w-12 h-12 rounded-lg overflow-hidden border border-sage-200 flex-shrink-0">
-                <img :src="companyLogo" class="w-full h-full object-contain" />
+          {/* Success Message */}
+          {submitted && (
+            <div className="success-pop" style={{
+              background:'linear-gradient(135deg, rgb(240,253,244), rgb(220,252,231))',
+              border:'1px solid rgb(134,239,172)',borderRadius:8,padding:16,marginBottom:16,
+              display:'flex',alignItems:'center',gap:12
+            }}>
+              <span style={{fontSize:28}}>✅</span>
+              <div>
+                <div style={{fontWeight:700,color:'rgb(34,97,45)',fontSize:15}}>Quote Requested!</div>
+                <div style={{color:'rgb(60,120,70)',fontSize:13,marginTop:2}}>We'll contact you shortly.</div>
               </div>
             </div>
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-sage-600 uppercase tracking-wider mb-1.5">Email</label>
-            <input v-model="company.email" type="email" placeholder="info@company.com"
-              class="w-full px-4 py-3 bg-sage-50 border border-sage-200 rounded-xl text-forest-900 placeholder-sage-400 focus:outline-none focus:border-forest-400 focus:bg-white transition-all" />
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-sage-600 uppercase tracking-wider mb-1.5">Phone</label>
-            <input v-model="company.phone" type="tel" placeholder="+387 00 000 000"
-              class="w-full px-4 py-3 bg-sage-50 border border-sage-200 rounded-xl text-forest-900 placeholder-sage-400 focus:outline-none focus:border-forest-400 focus:bg-white transition-all" />
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-sage-600 uppercase tracking-wider mb-1.5">Website</label>
-            <input v-model="company.website" type="url" placeholder="https://www.company.com"
-              class="w-full px-4 py-3 bg-sage-50 border border-sage-200 rounded-xl text-forest-900 placeholder-sage-400 focus:outline-none focus:border-forest-400 focus:bg-white transition-all" />
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-sage-600 uppercase tracking-wider mb-1.5">VAT Number</label>
-            <input v-model="company.vat" type="text" placeholder="VAT/ID number"
-              class="w-full px-4 py-3 bg-sage-50 border border-sage-200 rounded-xl text-forest-900 placeholder-sage-400 focus:outline-none focus:border-forest-400 focus:bg-white transition-all" />
-          </div>
-        </div>
-      </div>
+          )}
 
-      <!-- Customer Info -->
-      <div class="bg-white rounded-3xl shadow-lg border border-forest-50 p-6 sm:p-8 mb-6">
-        <h3 class="playfair text-lg font-bold text-forest-900 mb-6 flex items-center gap-2">
-          <svg class="w-5 h-5 text-forest-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-          </svg>
-          Customer Information
-        </h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <div>
-            <label class="block text-xs font-semibold text-sage-600 uppercase tracking-wider mb-1.5">Customer Name</label>
-            <input v-model="customer.name" type="text" placeholder="Customer / Company name"
-              class="w-full px-4 py-3 bg-sage-50 border border-sage-200 rounded-xl text-forest-900 placeholder-sage-400 focus:outline-none focus:border-forest-400 focus:bg-white transition-all" />
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-sage-600 uppercase tracking-wider mb-1.5">Customer Email</label>
-            <input v-model="customer.email" type="email" placeholder="customer@email.com"
-              class="w-full px-4 py-3 bg-sage-50 border border-sage-200 rounded-xl text-forest-900 placeholder-sage-400 focus:outline-none focus:border-forest-400 focus:bg-white transition-all" />
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-sage-600 uppercase tracking-wider mb-1.5">Customer Address</label>
-            <input v-model="customer.address" type="text" placeholder="Full address"
-              class="w-full px-4 py-3 bg-sage-50 border border-sage-200 rounded-xl text-forest-900 placeholder-sage-400 focus:outline-none focus:border-forest-400 focus:bg-white transition-all" />
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-sage-600 uppercase tracking-wider mb-1.5">Customer Phone</label>
-            <input v-model="customer.phone" type="tel" placeholder="+387 00 000 000"
-              class="w-full px-4 py-3 bg-sage-50 border border-sage-200 rounded-xl text-forest-900 placeholder-sage-400 focus:outline-none focus:border-forest-400 focus:bg-white transition-all" />
-          </div>
-        </div>
-      </div>
+          <form onSubmit={handleSubmit}>
+            {/* Category */}
+            <Field label="Project Category" required>
+              <div style={{
+                ...inputStyle(false),
+                background: selectedCat !== null ? 'rgb(240,253,244)' : '#f9fafb',
+                color: selectedCat !== null ? 'rgb(34,97,45)' : 'rgb(100,100,100)',
+                fontWeight: selectedCat !== null ? 600 : 400,
+                cursor:'default',display:'flex',alignItems:'center',gap:8
+              }}>
+                {selectedCat !== null ? (
+                  <><span>{CATEGORIES[selectedCat].icon}</span> {CATEGORIES[selectedCat].name}</>
+                ) : (
+                  <span style={{color:'#9ca3af'}}>← Select a category from the left menu</span>
+                )}
+              </div>
+            </Field>
 
-      <!-- Offer Items -->
-      <div class="bg-white rounded-3xl shadow-lg border border-forest-50 p-6 sm:p-8 mb-6">
-        <h3 class="playfair text-lg font-bold text-forest-900 mb-6 flex items-center gap-2">
-          <svg class="w-5 h-5 text-forest-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-          </svg>
-          Products in Offer ({{ offerItems.length }})
-        </h3>
+            {/* Project Name */}
+            <Field label="Project Name" required>
+              <TextInput value={form.projectName} onChange={v=>uf('projectName',v)}
+                placeholder="Enter project name" required />
+            </Field>
 
-        <div class="space-y-4">
-          <div v-for="(item, index) in offerItems" :key="item.id" class="offer-item rounded-2xl border border-sage-100 p-4 sm:p-5 relative">
-            <!-- Remove button -->
-            <button @click="removeFromOffer(index)"
-              class="absolute top-3 right-3 w-8 h-8 bg-red-50 hover:bg-red-100 text-red-500 rounded-full flex items-center justify-center transition-colors">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-              </svg>
+            {/* Location */}
+            <Field label="Location / Site Address" required>
+              <TextInput value={form.location} onChange={v=>uf('location',v)}
+                placeholder="City or address" required />
+            </Field>
+
+            {/* Scope */}
+            <Field label="Project Scope Description" required>
+              <TextArea value={form.scope} onChange={v=>uf('scope',v)}
+                placeholder="Brief description of work needed" rows={4} />
+            </Field>
+
+            {/* Budget */}
+            <Field label="Estimated Budget Range (EUR)" required>
+              <Select value={form.budget} onChange={v=>uf('budget',v)}
+                options={BUDGETS} placeholder="Select budget range" />
+            </Field>
+
+            {/* Timeline */}
+            <Field label="Timeline" required>
+              <Select value={form.timeline} onChange={v=>uf('timeline',v)}
+                options={TIMELINES} placeholder="Select timeline" />
+            </Field>
+
+            {/* Divider */}
+            <div style={{borderTop:'1px solid #e5e7eb',margin:'16px 0',position:'relative'}}>
+              <span style={{position:'absolute',top:-9,left:12,background:'#fff',padding:'0 8px',
+                fontSize:11,fontWeight:600,color:'rgb(34,97,45)',letterSpacing:1}}>CONTACT</span>
+            </div>
+
+            {/* Contact Name */}
+            <Field label="Contact Name" required>
+              <TextInput value={form.contactName} onChange={v=>uf('contactName',v)}
+                placeholder="Your name" required />
+            </Field>
+
+            {/* Email */}
+            <Field label="Contact Email" required>
+              <TextInput value={form.contactEmail} onChange={v=>uf('contactEmail',v)}
+                placeholder="your@email.com" type="email" required />
+              {form.contactEmail && !emailValid && (
+                <div style={{fontSize:11,color:'#dc2626',marginTop:3}}>Please enter a valid email address</div>
+              )}
+            </Field>
+
+            {/* Phone */}
+            <Field label="Contact Phone" required>
+              <TextInput value={form.contactPhone} onChange={v=>uf('contactPhone',v)}
+                placeholder="+387 (61) 123-4567" type="tel" required />
+              {form.contactPhone && !phoneValid && (
+                <div style={{fontSize:11,color:'#dc2626',marginTop:3}}>Phone must be at least 10 digits</div>
+              )}
+            </Field>
+
+            {/* Submit Button */}
+            <button type="submit" disabled={!isValid || submitting}
+              style={{
+                width:'100%',padding:14,marginTop:20,borderRadius:4,border:'none',
+                background: isValid && !submitting ? 'rgb(34,97,45)' : '#9ca3af',
+                color:'#fff',fontSize:16,fontWeight:700,cursor: isValid ? 'pointer' : 'not-allowed',
+                transition:'background 0.25s',
+                display:'flex',alignItems:'center',justifyContent:'center',gap:10
+              }}
+              onMouseEnter={e => { if(isValid) e.target.style.background='rgb(46,130,60)'; }}
+              onMouseLeave={e => { if(isValid) e.target.style.background='rgb(34,97,45)'; }}
+            >
+              {submitting ? (
+                <>
+                  <div style={{
+                    width:20,height:20,border:'3px solid rgba(255,255,255,0.3)',
+                    borderTop:'3px solid #fff',borderRadius:'50%',
+                    animation:'spin 1s linear infinite'
+                  }} />
+                  Submitting...
+                </>
+              ) : (
+                <>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                  </svg>
+                  Submit Quote Request
+                </>
+              )}
             </button>
 
-            <div class="flex flex-col sm:flex-row gap-4">
-              <!-- Product Image -->
-              <div class="w-full sm:w-32 h-32 bg-sage-50 rounded-xl overflow-hidden flex items-center justify-center flex-shrink-0">
-                <img :src="item.path" :alt="item.name" class="max-w-full max-h-full object-contain" />
+            {!isValid && selectedCat !== null && (
+              <div style={{fontSize:11,color:'#9ca3af',textAlign:'center',marginTop:8}}>
+                Fill in all required fields to submit
               </div>
+            )}
+          </form>
 
-              <!-- Product Details -->
-              <div class="flex-1 space-y-3">
-                <div>
-                  <label class="block text-xs font-semibold text-sage-600 uppercase tracking-wider mb-1">Product Name</label>
-                  <input v-model="item.name" type="text"
-                    class="w-full px-3 py-2 bg-sage-50 border border-sage-200 rounded-lg text-forest-900 text-sm focus:outline-none focus:border-forest-400 focus:bg-white transition-all" />
-                </div>
-                <div>
-                  <label class="block text-xs font-semibold text-sage-600 uppercase tracking-wider mb-1">Description</label>
-                  <textarea v-model="item.description" rows="2" placeholder="Product description, specifications..."
-                    class="w-full px-3 py-2 bg-sage-50 border border-sage-200 rounded-lg text-forest-900 text-sm placeholder-sage-400 focus:outline-none focus:border-forest-400 focus:bg-white transition-all resize-none"></textarea>
-                </div>
-                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  <div>
-                    <label class="block text-xs font-semibold text-sage-600 uppercase tracking-wider mb-1">Quantity</label>
-                    <input v-model.number="item.quantity" type="number" min="1"
-                      class="w-full px-3 py-2 bg-sage-50 border border-sage-200 rounded-lg text-forest-900 text-sm focus:outline-none focus:border-forest-400 focus:bg-white transition-all" />
-                  </div>
-                  <div>
-                    <label class="block text-xs font-semibold text-sage-600 uppercase tracking-wider mb-1">Unit Price (EUR)</label>
-                    <input v-model.number="item.price" type="number" min="0" step="0.01" placeholder="0.00"
-                      class="w-full px-3 py-2 bg-sage-50 border border-sage-200 rounded-lg text-forest-900 text-sm focus:outline-none focus:border-forest-400 focus:bg-white transition-all" />
-                  </div>
-                  <div>
-                    <label class="block text-xs font-semibold text-sage-600 uppercase tracking-wider mb-1">VAT %</label>
-                    <input v-model.number="item.vatPercent" type="number" min="0" max="100" step="0.1"
-                      class="w-full px-3 py-2 bg-sage-50 border border-sage-200 rounded-lg text-forest-900 text-sm focus:outline-none focus:border-forest-400 focus:bg-white transition-all" />
-                  </div>
-                </div>
-                <div class="flex items-center justify-between pt-2 border-t border-sage-100">
-                  <span class="text-xs text-sage-500">Subtotal: <strong class="text-forest-800">{{ formatCurrency(item.quantity * item.price) }}</strong></span>
-                  <span class="text-xs text-sage-500">VAT: <strong class="text-forest-800">{{ formatCurrency(item.quantity * item.price * item.vatPercent / 100) }}</strong></span>
-                  <span class="text-sm font-bold text-forest-700">Total: {{ formatCurrency(itemTotal(item)) }}</span>
-                </div>
-              </div>
-            </div>
+          {/* Footer */}
+          <div style={{textAlign:'center',marginTop:32,paddingTop:16,borderTop:'1px solid #f3f4f6'}}>
+            <div style={{fontSize:10,color:'#d1d5db',letterSpacing:2}}>AGM ECO SOLUTIONS © {new Date().getFullYear()}</div>
           </div>
         </div>
       </div>
-
-      <!-- Notes -->
-      <div class="bg-white rounded-3xl shadow-lg border border-forest-50 p-6 sm:p-8 mb-6">
-        <h3 class="playfair text-lg font-bold text-forest-900 mb-4 flex items-center gap-2">
-          <svg class="w-5 h-5 text-forest-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-          </svg>
-          Notes &amp; Terms
-        </h3>
-        <textarea v-model="notes" rows="4" placeholder="Additional notes, payment terms, delivery conditions..."
-          class="w-full px-4 py-3 bg-sage-50 border border-sage-200 rounded-xl text-forest-900 placeholder-sage-400 focus:outline-none focus:border-forest-400 focus:bg-white transition-all resize-none text-sm"></textarea>
-      </div>
-
-      <!-- TOTALS & EXPORT -->
-      <div class="bg-gradient-to-br from-forest-800 to-forest-950 rounded-3xl shadow-2xl p-6 sm:p-8 text-white mb-8">
-        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-          <div>
-            <p class="text-forest-300 text-xs uppercase tracking-widest mb-1">Offer Summary</p>
-            <div class="space-y-1">
-              <div class="flex items-center gap-4">
-                <span class="text-forest-200 text-sm">Subtotal:</span>
-                <span class="text-white font-semibold">{{ formatCurrency(grandSubtotal) }}</span>
-              </div>
-              <div class="flex items-center gap-4">
-                <span class="text-forest-200 text-sm">Total VAT:</span>
-                <span class="text-white font-semibold">{{ formatCurrency(grandVat) }}</span>
-              </div>
-              <div class="flex items-center gap-4 pt-2 border-t border-forest-700">
-                <span class="text-forest-100 text-lg font-bold">Grand Total:</span>
-                <span class="text-3xl font-bold playfair text-forest-300">{{ formatCurrency(grandTotal) }}</span>
-              </div>
-            </div>
-          </div>
-          <div class="flex gap-3">
-            <button @click="generatePDF"
-              class="btn-primary bg-forest-500 hover:bg-forest-400 text-white font-semibold px-8 py-4 rounded-2xl flex items-center gap-2 text-sm">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-              </svg>
-              Download PDF
-            </button>
-            <button @click="clearOffer"
-              class="bg-white/10 hover:bg-white/20 text-white font-medium px-6 py-4 rounded-2xl text-sm transition-all">
-              Clear All
-            </button>
-          </div>
-        </div>
-      </div>
-
     </div>
+  );
+}
 
-    <!-- Empty State -->
-    <div v-if="offerItems.length === 0" class="text-center py-20">
-      <div class="text-7xl mb-6">&#128196;</div>
-      <h3 class="playfair text-2xl font-bold text-forest-800 mb-2">No products in offer yet</h3>
-      <p class="text-sage-500 max-w-md mx-auto">Search and click on products above to add them to your offer template. You can add multiple products to create a comprehensive quote.</p>
-    </div>
-
-  </main>
-
-  <!-- Footer -->
-  <footer class="bg-forest-950 text-forest-400 text-center py-6 text-xs tracking-wider">
-    <p>&copy; {{ new Date().getFullYear() }} AGM Offer Generator &mdash; Wastewater Treatment Solutions</p>
-  </footer>
-
-</div>
-
-<script>
-const { createApp, ref, computed } = Vue;
-
-createApp({
-  setup() {
-    const IMAGE_FOLDER = 'images/';
-
-    // All image filenames from the folder (excluding logos and README)
-    const allFiles = [
-      '14052010868-IBGZCC4mhKpdpQJe62Wdfg.jpg',
-      '20200409_102841-Copy-Copy-hYY-rDoqsbF3r8bcU--2ag.jpg',
-      '2KSBJISEAFAMILYTIP400-1500-L-27sQZsWo7UCmD13wZKHs0w.png',
-      '2_4_clipped_rev_1-Copy-4atdJSrce9AqkcDYKYtlcQ.png',
-      '3KSBJISEATOPTIP2000-10000-HG94K5a2BYuwvKVzieGFSw.png',
-      '3KSBJTIPISEAAGMTIP400-1500-Op0Iyt9Mumo5slwbqMFsKg.png',
-      '4-Qs-3cLch0f6tvykZfrg5Mw.jpg',
-      'Ahyperrealisticima-Copy2-R1h9R32zM9DYoN8ZnoxZzw.png',
-      'BIOMODULMAXI11000-ZUTI-3-Copy-vp7TAXYh-wRuizVvo1feTg.jpg',
-      'BIOMODULMAXI36000-ZUTI-4_clipped_rev_1-VZ6iJbbZWjzIpak-GqyDBA.png',
-      'COMPACTF.A.7AGM35-40.--7wbw21fVAND1N1IWrE6Nmg.png',
-      'CRPNASTANICAK-B2SAFIKSNOMRESETKOMTIPO500-1_clipped_rev_1-Yu9pGTfZU6WpU443NVKoUg.png',
-      'CRPNASTANICAK2-9XKkpkBjNNw5tnAPzRPJJA.png',
-      'CRPNASTANICAK2-MONTAZA-12-yQExB_K3Yl53I9qUhB_DFQ.jpg',
-      'Crpnastanica-EgnZm7W0exNyFVGc9WAuRA.jpg',
-      'Doboj-MastiPOLI150ES-03.04.08.004-qvyjIVwb8BVNP470_QhtYQ.jpg',
-      'FIKSNARESETKATIPO500.-4-jQsK9ERXdfLYYePpmuj3Hw.jpg',
-      'MASTOLOVISEATIPFAMILY50-SLIKAoie-Copy-_EqOI6tPdWIfXtMX2NjyDQ.png',
-      'MASTOLOVTIPG-Copy-GZF11FFx4EFh3P6Xk4O-5Q.png',
-      'Mastolovpjeskolov1-ioDn8VgbtU5bk48lw406dw.jpg',
-      'P3210004-Copy2-9AF6U0ouuDxxKaYeYWJniQ.jpg',
-      'P6050020-EUhu0ky9t90rhMHgUp88GQ.jpg',
-      'POLI1-50.75.100-HREQX3pwRYLFPQU-9vyxlg.png',
-      'POLIMAXIA.E.150-AIRLIFT-5-k_-cF9rszkX2wd5CbRQ46Q.png',
-      'PodgoricaCr.GoraFiks.res.iCr.st.250B2-26.04.08.075-Fn54Ihx2prvs_6gH5ZTGpQ.jpg',
-      'SBSUPERPLUSMIXS.M-2-_YAX0SIL7OBoOYrgPrhvgg.png',
-      'SEPARATORMAXI16000-PLAVI-2-Copy-RC1Kx8roJnJOeY7DpVyiqQ.jpg',
-      'SEPARATORULJA3000MK-2-FNb3rE2I6fX6wDMX9-fGTg.png',
-      'TROKOM.SEPT.TipPC-HU3xy9rydRssKOUZ57OuEw.png',
-      'VODONEPROPUSNISPREMNIKTIPVS16000R-Copy-Mg89RjwlwmqhkdYWOYSHIg.png',
-      'mastolovVECI1_clipped_rev_1-Copy-rUjkCXjg3E32jMywkWOv6A.png',
-      'mastolovtipPC121_clipped_rev_1-Copy-ZBQY2ztRVJQG6h7o-sNRfw.png',
-      'oie_OTTO-PE30NS30-Copy-WwQPJh0gChswOoCFE9EGpg.png',
-      'oie_POLI1-200AE-IMPVECexrg6G8HKl3pJKpA.png'
-    ];
-
-    function cleanName(filename) {
-      let name = filename.replace(/\.[^/.]+$/, '');
-      // Remove hash suffixes (the random-looking strings after the last dash)
-      name = name.replace(/-[A-Za-z0-9_-]{16,}$/, '');
-      // Clean up remaining artifacts
-      name = name.replace(/_clipped_rev_1/gi, '');
-      name = name.replace(/-Copy\d*/gi, '');
-      name = name.replace(/_/g, ' ').replace(/\./g, ' ');
-      name = name.replace(/-+/g, ' ').replace(/\s+/g, ' ').trim();
-      return name || filename;
-    }
-
-    const products = allFiles.map(f => ({
-      filename: f,
-      name: cleanName(f),
-      path: IMAGE_FOLDER + f
-    }));
-
-    const searchQuery = ref('');
-    const offerItems = ref([]);
-    const companyLogo = ref(null);
-    const notes = ref('');
-    let itemIdCounter = 0;
-
-    const company = ref({
-      name: '', email: '', phone: '', website: '', vat: ''
-    });
-
-    const customer = ref({
-      name: '', email: '', address: '', phone: ''
-    });
-
-    const filteredProducts = computed(() => {
-      if (!searchQuery.value.trim()) return products;
-      const q = searchQuery.value.toLowerCase();
-      return products.filter(p =>
-        p.name.toLowerCase().includes(q) || p.filename.toLowerCase().includes(q)
-      );
-    });
-
-    function addToOffer(product) {
-      offerItems.value.push({
-        id: ++itemIdCounter,
-        filename: product.filename,
-        name: product.name,
-        path: product.path,
-        description: '',
-        quantity: 1,
-        price: 0,
-        vatPercent: 17
-      });
-      // Scroll to offer
-      setTimeout(() => {
-        document.querySelector('.offer-item:last-child')?.scrollIntoView({ behavior:'smooth', block:'center' });
-      }, 100);
-    }
-
-    function removeFromOffer(index) {
-      offerItems.value.splice(index, 1);
-    }
-
-    function clearOffer() {
-      offerItems.value = [];
-    }
-
-    function onLogoUpload(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = () => { companyLogo.value = reader.result; };
-      reader.readAsDataURL(file);
-    }
-
-    function formatCurrency(amount) {
-      return new Intl.NumberFormat('de-DE', { style:'currency', currency:'EUR' }).format(amount || 0);
-    }
-
-    function itemTotal(item) {
-      const sub = item.quantity * item.price;
-      return sub + sub * item.vatPercent / 100;
-    }
-
-    const grandSubtotal = computed(() =>
-      offerItems.value.reduce((sum, i) => sum + i.quantity * i.price, 0)
-    );
-    const grandVat = computed(() =>
-      offerItems.value.reduce((sum, i) => sum + i.quantity * i.price * i.vatPercent / 100, 0)
-    );
-    const grandTotal = computed(() => grandSubtotal.value + grandVat.value);
-
-    async function generatePDF() {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF('p', 'mm', 'a4');
-      const W = 210, H = 297;
-      const margin = 15;
-      let y = margin;
-
-      // Helper
-      const addPage = () => { doc.addPage(); y = margin; };
-
-      // Header bar
-      doc.setFillColor(20, 83, 45);
-      doc.rect(0, 0, W, 35, 'F');
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(18);
-      doc.setFont('helvetica', 'bold');
-      doc.text('OFFER', margin, 16);
-      doc.setFontSize(9);
-      doc.setFont('helvetica', 'normal');
-      doc.text('Wastewater Treatment Equipment', margin, 23);
-
-      // Date & offer number
-      const today = new Date().toLocaleDateString('en-GB');
-      const offerNum = 'OFF-' + Date.now().toString(36).toUpperCase();
-      doc.text(`Date: ${today}  |  Ref: ${offerNum}`, W - margin, 16, { align:'right' });
-
-      // Company logo
-      if (companyLogo.value) {
-        try {
-          doc.addImage(companyLogo.value, 'PNG', W - margin - 25, 5, 25, 25);
-        } catch(e) {}
-      }
-
-      y = 45;
-
-      // Company & Customer info side by side
-      doc.setTextColor(20, 83, 45);
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'bold');
-      doc.text('FROM:', margin, y);
-      doc.text('TO:', W/2 + 5, y);
-      y += 5;
-
-      doc.setTextColor(60, 60, 60);
-      doc.setFontSize(9);
-      doc.setFont('helvetica', 'normal');
-
-      const companyLines = [
-        company.value.name,
-        company.value.email,
-        company.value.phone,
-        company.value.website,
-        company.value.vat ? `VAT: ${company.value.vat}` : ''
-      ].filter(Boolean);
-
-      const customerLines = [
-        customer.value.name,
-        customer.value.email,
-        customer.value.phone,
-        customer.value.address
-      ].filter(Boolean);
-
-      const maxLines = Math.max(companyLines.length, customerLines.length);
-      for (let i = 0; i < maxLines; i++) {
-        if (companyLines[i]) doc.text(companyLines[i], margin, y);
-        if (customerLines[i]) doc.text(customerLines[i], W/2 + 5, y);
-        y += 5;
-      }
-
-      y += 8;
-
-      // Separator
-      doc.setDrawColor(20, 83, 45);
-      doc.setLineWidth(0.5);
-      doc.line(margin, y, W - margin, y);
-      y += 8;
-
-      // Table header
-      doc.setFillColor(240, 253, 244);
-      doc.rect(margin, y - 4, W - margin * 2, 8, 'F');
-      doc.setTextColor(20, 83, 45);
-      doc.setFontSize(8);
-      doc.setFont('helvetica', 'bold');
-      doc.text('#', margin + 2, y);
-      doc.text('Product', margin + 10, y);
-      doc.text('Qty', 120, y);
-      doc.text('Unit Price', 135, y);
-      doc.text('VAT %', 158, y);
-      doc.text('Total', W - margin, y, { align:'right' });
-      y += 8;
-
-      // Table rows
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(50, 50, 50);
-
-      offerItems.value.forEach((item, idx) => {
-        if (y > H - 60) addPage();
-
-        // Alternating row background
-        if (idx % 2 === 0) {
-          doc.setFillColor(250, 250, 245);
-          doc.rect(margin, y - 4, W - margin * 2, 7, 'F');
-        }
-
-        doc.setFontSize(8);
-        doc.text(`${idx + 1}`, margin + 2, y);
-
-        // Truncate long names
-        const displayName = item.name.length > 40 ? item.name.substring(0, 37) + '...' : item.name;
-        doc.text(displayName, margin + 10, y);
-        doc.text(`${item.quantity}`, 120, y);
-        doc.text(formatCurrency(item.price), 135, y);
-        doc.text(`${item.vatPercent}%`, 158, y);
-        doc.text(formatCurrency(itemTotal(item)), W - margin, y, { align:'right' });
-        y += 7;
-
-        if (item.description) {
-          doc.setFontSize(7);
-          doc.setTextColor(120, 120, 120);
-          const descLines = doc.splitTextToSize(item.description, 100);
-          descLines.slice(0, 2).forEach(line => {
-            doc.text(line, margin + 10, y);
-            y += 4;
-          });
-          doc.setTextColor(50, 50, 50);
-        }
-      });
-
-      y += 5;
-      doc.line(margin, y, W - margin, y);
-      y += 8;
-
-      // Totals
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'normal');
-      doc.text('Subtotal:', 130, y);
-      doc.text(formatCurrency(grandSubtotal.value), W - margin, y, { align:'right' });
-      y += 6;
-      doc.text('Total VAT:', 130, y);
-      doc.text(formatCurrency(grandVat.value), W - margin, y, { align:'right' });
-      y += 6;
-
-      doc.setFillColor(20, 83, 45);
-      doc.rect(125, y - 5, W - margin - 125, 10, 'F');
-      doc.setTextColor(255, 255, 255);
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(11);
-      doc.text('GRAND TOTAL:', 130, y + 1);
-      doc.text(formatCurrency(grandTotal.value), W - margin - 2, y + 1, { align:'right' });
-
-      y += 15;
-
-      // Notes
-      if (notes.value) {
-        if (y > H - 40) addPage();
-        doc.setTextColor(20, 83, 45);
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'bold');
-        doc.text('Notes & Terms:', margin, y);
-        y += 6;
-        doc.setTextColor(80, 80, 80);
-        doc.setFontSize(8);
-        doc.setFont('helvetica', 'normal');
-        const noteLines = doc.splitTextToSize(notes.value, W - margin * 2);
-        noteLines.forEach(line => {
-          if (y > H - 15) addPage();
-          doc.text(line, margin, y);
-          y += 4;
-        });
-      }
-
-      // Footer
-      doc.setTextColor(150, 150, 150);
-      doc.setFontSize(7);
-      doc.text('Generated by AGM Offer Generator', W / 2, H - 8, { align:'center' });
-
-      doc.save(`Offer_${customer.value.name || 'Customer'}_${today.replace(/\//g, '-')}.pdf`);
-    }
-
-    return {
-      searchQuery, filteredProducts, offerItems, company, customer, companyLogo, notes,
-      addToOffer, removeFromOffer, clearOffer, onLogoUpload,
-      formatCurrency, itemTotal, grandSubtotal, grandVat, grandTotal, generatePDF
-    };
-  }
-}).mount('#app');
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
 </script>
 </body>
 </html>
