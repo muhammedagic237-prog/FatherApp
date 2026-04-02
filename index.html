@@ -273,6 +273,7 @@ function OfferPanel({items,setItems,currency,setCurrency}) {
   const ucust=(f,v)=>setCustomer(p=>({...p,[f]:v}));
 
   const generatePDF=()=>{
+    try{
     const{jsPDF}=window.jspdf;const doc=new jsPDF('p','mm','a4');const W=210,mg=15;let y=mg;
     doc.setFillColor(20,83,45);doc.rect(0,0,W,32,'F');
     doc.setTextColor(255,255,255);doc.setFontSize(18);doc.setFont('helvetica','bold');
@@ -300,6 +301,7 @@ function OfferPanel({items,setItems,currency,setCurrency}) {
     if(notes){doc.setTextColor(20,83,45);doc.setFontSize(9);doc.setFont('helvetica','bold');doc.text('Napomene:',mg,y);y+=5;doc.setTextColor(80,80,80);doc.setFont('helvetica','normal');doc.setFontSize(8);doc.splitTextToSize(notes,W-mg*2).forEach(l=>{doc.text(l,mg,y);y+=4;});}
     doc.setTextColor(150,150,150);doc.setFontSize(7);doc.text('AGM Eco Solutions — agm-ecosolutions.ba',W/2,290,{align:'center'});
     doc.save('Ponuda_'+(customer.name||'Kupac')+'_'+today.replace(/\//g,'-')+'.pdf');
+    }catch(err){alert('PDF greska: '+err.message);console.error(err);}
   };
 
   const onDragStart=(e,idx)=>{setDragIdx(idx);e.dataTransfer.effectAllowed='move';};
