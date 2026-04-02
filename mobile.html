@@ -54,6 +54,7 @@
 </head>
 <body>
 <div id="root"></div>
+<script src="imagedata.js"></script>
 <script type="text/babel">
 const { useState, useRef, useCallback, useMemo, useEffect } = React;
 
@@ -147,6 +148,20 @@ const CATEGORIES = [
   }
 ];
 
+// Resolve image: use embedded base64 data, fallback to file path
+function resolveImage(folder, filename) {
+  const key = folder.replace('images/', '') + '/' + filename;
+  if (typeof IMAGE_DATA !== 'undefined' && IMAGE_DATA[key]) return IMAGE_DATA[key];
+  return folder + '/' + filename;
+}
+function resolveLogo(filename) {
+  const key = 'logos/' + filename;
+  if (typeof IMAGE_DATA !== 'undefined' && IMAGE_DATA[key]) return IMAGE_DATA[key];
+  return 'images/logos/' + filename;
+}
+
+const AGM_LOGO = resolveLogo('000-AGMNOVIKOMBIN.logo-oie.png');
+
 // Build flat product list with category info
 const ALL_PRODUCTS = [];
 CATEGORIES.forEach(cat => {
@@ -154,7 +169,7 @@ CATEGORIES.forEach(cat => {
     ALL_PRODUCTS.push({
       filename: f,
       name: cleanName(f),
-      path: cat.folder + '/' + f,
+      path: resolveImage(cat.folder, f),
       category: cat.name,
       categoryId: cat.id
     });
@@ -201,7 +216,7 @@ function SplashScreen({ onDone }) {
           animation:`dropFlow ${2+Math.random()*3}s ease-in ${Math.random()*2}s infinite`
         }} />
       ))}
-      <img src="images/logos/000-AGMNOVIKOMBIN.logo-oie.png" alt="AGM"
+      <img src={AGM_LOGO} alt="AGM"
         style={{width:120,height:120,objectFit:'contain',filter:'drop-shadow(0 8px 30px rgba(34,197,94,0.4)) brightness(1.1)',
           animation:'splashLogo 1s cubic-bezier(0.34,1.56,0.64,1) forwards',opacity:0}} />
       <div style={{width:0,height:2,background:'linear-gradient(90deg, transparent, #86efac, transparent)',
@@ -237,7 +252,7 @@ function Header({ onMenuToggle }) {
         <h1 className="text-white font-extrabold text-lg tracking-tight leading-tight">AGM Eco Solutions</h1>
         <p className="text-forest-400 text-[10px] tracking-widest uppercase">Wastewater Treatment Equipment</p>
       </div>
-      <img src="images/logos/000-AGMNOVIKOMBIN.logo-oie.png" className="w-10 h-10 rounded-lg object-contain bg-white/10 p-1" />
+      <img src={AGM_LOGO} className="w-10 h-10 rounded-lg object-contain bg-white/10 p-1" />
     </header>
   );
 }
@@ -251,7 +266,7 @@ function Drawer({ open, onClose, categories, onSelectCategory, activeCategory })
       <div className="fixed top-0 left-0 bottom-0 w-[300px] bg-white z-50 shadow-2xl overflow-y-auto" style={{animation:'slideLeft 0.3s ease-out'}}>
         <div className="bg-gradient-to-br from-forest-900 to-forest-950 p-6 pb-8">
           <div className="flex items-center justify-between mb-4">
-            <img src="images/logos/000-AGMNOVIKOMBIN.logo-oie.png" className="w-12 h-12 rounded-xl object-contain bg-white/10 p-1" />
+            <img src={AGM_LOGO} className="w-12 h-12 rounded-xl object-contain bg-white/10 p-1" />
             <button onClick={onClose} className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center">
               <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/>
