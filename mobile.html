@@ -3,13 +3,19 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>AGM Offers — Mobile</title>
+  <title>AGM Eco Solutions</title>
+  <meta name="description" content="AGM Eco Solutions - Wastewater Treatment Equipment Offer Generator" />
+  <meta name="theme-color" content="#052e16" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="AGM Offers" />
+  <link rel="manifest" href="manifest.json" />
   <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <script>
     tailwind.config = {
       theme: {
@@ -30,19 +36,20 @@
     input[type="number"]{-moz-appearance:textfield}
     @keyframes slideUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
     @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+    @keyframes slideRight{from{transform:translateX(100%)}to{transform:translateX(0)}}
+    @keyframes slideLeft{from{transform:translateX(-100%)}to{transform:translateX(0)}}
     @keyframes popIn{from{opacity:0;transform:scale(0.85)}to{opacity:1;transform:scale(1)}}
-    @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
-    .slide-up{animation:slideUp 0.3s ease-out}
-    .fade-in{animation:fadeIn 0.25s ease-out}
-    .pop-in{animation:popIn 0.25s ease-out}
-    .added-flash{animation:shake 0.3s ease-out}
-    ::-webkit-scrollbar{width:0;background:transparent}
     @keyframes splashLogo{0%{opacity:0;transform:scale(0.5) translateY(20px)}50%{opacity:1;transform:scale(1.05) translateY(0)}100%{opacity:1;transform:scale(1) translateY(0)}}
     @keyframes splashText{from{opacity:0;transform:translateY(15px)}to{opacity:1;transform:translateY(0)}}
     @keyframes splashLine{from{width:0}to{width:80px}}
     @keyframes splashPulse{0%,100%{opacity:0.4}50%{opacity:1}}
     @keyframes splashOut{to{opacity:0;transform:scale(1.1)}}
     @keyframes dropFlow{0%{transform:translateY(-10px);opacity:0}30%{opacity:1}100%{transform:translateY(60px);opacity:0}}
+    .slide-up{animation:slideUp 0.3s ease-out}
+    .slide-right{animation:slideRight 0.35s cubic-bezier(0.25,0.46,0.45,0.94)}
+    .fade-in{animation:fadeIn 0.25s ease-out}
+    .pop-in{animation:popIn 0.25s ease-out}
+    ::-webkit-scrollbar{width:0;background:transparent}
   </style>
 </head>
 <body>
@@ -50,88 +57,246 @@
 <script type="text/babel">
 const { useState, useRef, useCallback, useMemo, useEffect } = React;
 
-/* ── IMAGE DATA ── */
-const IMAGE_FOLDER = 'images/';
-const RAW_FILES = [
-  '14052010868-IBGZCC4mhKpdpQJe62Wdfg.jpg',
-  '20200409_102841-Copy-Copy-hYY-rDoqsbF3r8bcU--2ag.jpg',
-  '2KSBJISEAFAMILYTIP400-1500-L-27sQZsWo7UCmD13wZKHs0w.png',
-  '2_4_clipped_rev_1-Copy-4atdJSrce9AqkcDYKYtlcQ.png',
-  '3KSBJISEATOPTIP2000-10000-HG94K5a2BYuwvKVzieGFSw.png',
-  '3KSBJTIPISEAAGMTIP400-1500-Op0Iyt9Mumo5slwbqMFsKg.png',
-  '4-Qs-3cLch0f6tvykZfrg5Mw.jpg',
-  'Ahyperrealisticima-Copy2-R1h9R32zM9DYoN8ZnoxZzw.png',
-  'BIOMODULMAXI11000-ZUTI-3-Copy-vp7TAXYh-wRuizVvo1feTg.jpg',
-  'BIOMODULMAXI36000-ZUTI-4_clipped_rev_1-VZ6iJbbZWjzIpak-GqyDBA.png',
-  'COMPACTF.A.7AGM35-40.--7wbw21fVAND1N1IWrE6Nmg.png',
-  'CRPNASTANICAK-B2SAFIKSNOMRESETKOMTIPO500-1_clipped_rev_1-Yu9pGTfZU6WpU443NVKoUg.png',
-  'CRPNASTANICAK2-9XKkpkBjNNw5tnAPzRPJJA.png',
-  'CRPNASTANICAK2-MONTAZA-12-yQExB_K3Yl53I9qUhB_DFQ.jpg',
-  'Crpnastanica-EgnZm7W0exNyFVGc9WAuRA.jpg',
-  'Doboj-MastiPOLI150ES-03.04.08.004-qvyjIVwb8BVNP470_QhtYQ.jpg',
-  'FIKSNARESETKATIPO500.-4-jQsK9ERXdfLYYePpmuj3Hw.jpg',
-  'MASTOLOVISEATIPFAMILY50-SLIKAoie-Copy-_EqOI6tPdWIfXtMX2NjyDQ.png',
-  'MASTOLOVTIPG-Copy-GZF11FFx4EFh3P6Xk4O-5Q.png',
-  'Mastolovpjeskolov1-ioDn8VgbtU5bk48lw406dw.jpg',
-  'P3210004-Copy2-9AF6U0ouuDxxKaYeYWJniQ.jpg',
-  'P6050020-EUhu0ky9t90rhMHgUp88GQ.jpg',
-  'POLI1-50.75.100-HREQX3pwRYLFPQU-9vyxlg.png',
-  'POLIMAXIA.E.150-AIRLIFT-5-k_-cF9rszkX2wd5CbRQ46Q.png',
-  'PodgoricaCr.GoraFiks.res.iCr.st.250B2-26.04.08.075-Fn54Ihx2prvs_6gH5ZTGpQ.jpg',
-  'SBSUPERPLUSMIXS.M-2-_YAX0SIL7OBoOYrgPrhvgg.png',
-  'SEPARATORMAXI16000-PLAVI-2-Copy-RC1Kx8roJnJOeY7DpVyiqQ.jpg',
-  'SEPARATORULJA3000MK-2-FNb3rE2I6fX6wDMX9-fGTg.png',
-  'TROKOM.SEPT.TipPC-HU3xy9rydRssKOUZ57OuEw.png',
-  'VODONEPROPUSNISPREMNIKTIPVS16000R-Copy-Mg89RjwlwmqhkdYWOYSHIg.png',
-  'mastolovVECI1_clipped_rev_1-Copy-rUjkCXjg3E32jMywkWOv6A.png',
-  'mastolovtipPC121_clipped_rev_1-Copy-ZBQY2ztRVJQG6h7o-sNRfw.png',
-  'oie_OTTO-PE30NS30-Copy-WwQPJh0gChswOoCFE9EGpg.png',
-  'oie_POLI1-200AE-IMPVECexrg6G8HKl3pJKpA.png'
+/* ── PRODUCT DATA BY CATEGORY ── */
+const CATEGORIES = [
+  {
+    id: 'bioloski',
+    name: 'Bioloski Uredjaji',
+    icon: '🔬',
+    folder: 'images/Bioloski Uredjaji',
+    files: [
+      'COMPACTF.A.7AGM35-40.--7wbw21fVAND1N1IWrE6Nmg.png',
+      'POLI1-50.75.100-HREQX3pwRYLFPQU-9vyxlg.png',
+      'POLIMAXIA.E.150-AIRLIFT-5-k_-cF9rszkX2wd5CbRQ46Q.png',
+      'SBSUPERPLUSMIXS.M-2-_YAX0SIL7OBoOYrgPrhvgg.png',
+      'oie_POLI1-200AE-IMPVECexrg6G8HKl3pJKpA.png'
+    ]
+  },
+  {
+    id: 'mastolovi',
+    name: 'Mastolovi Pjeskolovi',
+    icon: '🛢️',
+    folder: 'images/Mastolovi Pjeskolovi',
+    files: [
+      '2_4_clipped_rev_1-Copy-4atdJSrce9AqkcDYKYtlcQ.png',
+      'BIOMODULMAXI11000-ZUTI-3-Copy-vp7TAXYh-wRuizVvo1feTg.jpg',
+      'MASTOLOVISEATIPFAMILY50-SLIKAoie-Copy-_EqOI6tPdWIfXtMX2NjyDQ.png',
+      'MASTOLOVTIPG-Copy-GZF11FFx4EFh3P6Xk4O-5Q.png',
+      'mastolovtipPC121_clipped_rev_1-Copy-ZBQY2ztRVJQG6h7o-sNRfw.png'
+    ]
+  },
+  {
+    id: 'separator',
+    name: 'Separator Ulja',
+    icon: '⚙️',
+    folder: 'images/Separator Ulja',
+    files: [
+      '20200409_102841-Copy-Copy-hYY-rDoqsbF3r8bcU--2ag.jpg',
+      'BIOMODULMAXI36000-ZUTI-4_clipped_rev_1-VZ6iJbbZWjzIpak-GqyDBA.png',
+      'SEPARATORMAXI16000-PLAVI-2-Copy-RC1Kx8roJnJOeY7DpVyiqQ.jpg',
+      'SEPARATORULJA3000MK-2-FNb3rE2I6fX6wDMX9-fGTg.png',
+      'mastolovVECI1_clipped_rev_1-Copy-rUjkCXjg3E32jMywkWOv6A.png',
+      'oie_OTTO-PE30NS30-Copy-WwQPJh0gChswOoCFE9EGpg.png'
+    ]
+  },
+  {
+    id: 'septicke',
+    name: 'Septicke Bio Jame',
+    icon: '🏗️',
+    folder: 'images/Septicke Bio Jame',
+    files: [
+      '2KSBJISEAFAMILYTIP400-1500-L-27sQZsWo7UCmD13wZKHs0w.png',
+      '3KSBJISEATOPTIP2000-10000-HG94K5a2BYuwvKVzieGFSw.png',
+      '3KSBJTIPISEAAGMTIP400-1500-Op0Iyt9Mumo5slwbqMFsKg.png',
+      '4-Qs-3cLch0f6tvykZfrg5Mw.jpg',
+      'P3210004-Copy2-9AF6U0ouuDxxKaYeYWJniQ.jpg',
+      'TROKOM.SEPT.TipPC-HU3xy9rydRssKOUZ57OuEw.png'
+    ]
+  },
+  {
+    id: 'crpne',
+    name: 'Crpne Stanice',
+    icon: '💧',
+    folder: 'images/Crpne Stanice',
+    files: [
+      'CRPNASTANICAK-B2SAFIKSNOMRESETKOMTIPO500-1_clipped_rev_1-Yu9pGTfZU6WpU443NVKoUg.png',
+      'CRPNASTANICAK2-9XKkpkBjNNw5tnAPzRPJJA.png',
+      'CRPNASTANICAK2-MONTAZA-12-yQExB_K3Yl53I9qUhB_DFQ.jpg',
+      'Doboj-MastiPOLI150ES-03.04.08.004-qvyjIVwb8BVNP470_QhtYQ.jpg',
+      'PodgoricaCr.GoraFiks.res.iCr.st.250B2-26.04.08.075-Fn54Ihx2prvs_6gH5ZTGpQ.jpg'
+    ]
+  },
+  {
+    id: 'spremnici',
+    name: 'Spremnici Tankovi',
+    icon: '🔵',
+    folder: 'images/Spremnici Tankovi',
+    files: [
+      'P6050020-EUhu0ky9t90rhMHgUp88GQ.jpg',
+      'VODONEPROPUSNISPREMNIKTIPVS16000R-Copy-Mg89RjwlwmqhkdYWOYSHIg.png'
+    ]
+  },
+  {
+    id: 'ostali',
+    name: 'Ostali Proizvodi',
+    icon: '📦',
+    folder: 'images/Ostali Proizvodi',
+    files: [
+      'FIKSNARESETKATIPO500.-4-jQsK9ERXdfLYYePpmuj3Hw.jpg'
+    ]
+  }
 ];
+
+// Build flat product list with category info
+const ALL_PRODUCTS = [];
+CATEGORIES.forEach(cat => {
+  cat.files.forEach(f => {
+    ALL_PRODUCTS.push({
+      filename: f,
+      name: cleanName(f),
+      path: cat.folder + '/' + f,
+      category: cat.name,
+      categoryId: cat.id
+    });
+  });
+});
 
 function cleanName(f) {
   let n = f.replace(/\.[^/.]+$/, '');
   n = n.replace(/-[A-Za-z0-9_-]{16,}$/, '');
   n = n.replace(/_clipped_rev_1/gi, '');
   n = n.replace(/-Copy\d*/gi, '');
+  n = n.replace(/oie_/gi, '');
   n = n.replace(/_/g, ' ').replace(/\./g, ' ').replace(/-+/g, ' ').replace(/\s+/g, ' ').trim();
   return n || f;
 }
 
-const PRODUCTS = RAW_FILES.map(f => ({ filename: f, name: cleanName(f), path: IMAGE_FOLDER + f }));
+function fmtBAM(v) { return (v||0).toFixed(2) + ' KM'; }
+function fmtEUR(v) { return new Intl.NumberFormat('de-DE',{style:'currency',currency:'EUR'}).format(v||0); }
 
-function currency(v) {
-  return new Intl.NumberFormat('de-DE', { style:'currency', currency:'EUR' }).format(v || 0);
+/* ── SPLASH SCREEN ── */
+function SplashScreen({ onDone }) {
+  const [exiting, setExiting] = useState(false);
+  useEffect(() => {
+    const t1 = setTimeout(() => setExiting(true), 2800);
+    const t2 = setTimeout(onDone, 3300);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, []);
+
+  return (
+    <div onClick={() => { setExiting(true); setTimeout(onDone, 400); }}
+      style={{
+        position:'fixed',inset:0,zIndex:9999,
+        background:'linear-gradient(145deg, #052e16 0%, #14532d 40%, #166534 70%, #15803d 100%)',
+        display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',
+        animation: exiting ? 'splashOut 0.5s ease-in forwards' : 'none',
+        cursor:'pointer',overflow:'hidden'
+      }}>
+      {[...Array(12)].map((_,i) => (
+        <div key={i} style={{
+          position:'absolute',left:(10+Math.random()*80)+'%',top:(Math.random()*100)+'%',
+          width:4+Math.random()*4,height:8+Math.random()*6,
+          borderRadius:'50% 50% 50% 50% / 60% 60% 40% 40%',
+          background:`rgba(134,239,172,${0.15+Math.random()*0.15})`,
+          animation:`dropFlow ${2+Math.random()*3}s ease-in ${Math.random()*2}s infinite`
+        }} />
+      ))}
+      <img src="images/logos/000-AGMNOVIKOMBIN.logo-oie.png" alt="AGM"
+        style={{width:120,height:120,objectFit:'contain',filter:'drop-shadow(0 8px 30px rgba(34,197,94,0.4)) brightness(1.1)',
+          animation:'splashLogo 1s cubic-bezier(0.34,1.56,0.64,1) forwards',opacity:0}} />
+      <div style={{width:0,height:2,background:'linear-gradient(90deg, transparent, #86efac, transparent)',
+        borderRadius:2,marginTop:24,marginBottom:20,animation:'splashLine 0.8s ease-out 0.6s forwards'}} />
+      <div style={{fontWeight:800,fontSize:26,color:'#fff',letterSpacing:3,textShadow:'0 2px 20px rgba(34,197,94,0.3)',
+        opacity:0,animation:'splashText 0.6s ease-out 0.8s forwards'}}>AGM Eco Solutions</div>
+      <div style={{fontWeight:400,fontSize:11,color:'#86efac',letterSpacing:5,textTransform:'uppercase',
+        marginTop:8,opacity:0,animation:'splashText 0.6s ease-out 1.1s forwards'}}>Offer Generator</div>
+      <div style={{fontWeight:300,fontSize:10,color:'rgba(134,239,172,0.5)',letterSpacing:2,textTransform:'uppercase',
+        marginTop:20,opacity:0,animation:'splashText 0.6s ease-out 1.4s forwards'}}>Wastewater Treatment Solutions</div>
+      <div style={{position:'absolute',bottom:60,display:'flex',gap:8}}>
+        {[0,1,2].map(i => (
+          <div key={i} style={{width:6,height:6,borderRadius:'50%',background:'#4ade80',
+            animation:`splashPulse 1.2s ease-in-out ${i*0.2}s infinite`}} />
+        ))}
+      </div>
+      <div style={{position:'absolute',bottom:30,fontSize:10,color:'rgba(134,239,172,0.3)',letterSpacing:2,
+        opacity:0,animation:'splashText 0.5s ease-out 2s forwards'}}>TAP TO CONTINUE</div>
+    </div>
+  );
 }
 
-/* ── COMPONENTS ── */
-
-function Header({ logoUrl }) {
+/* ── HEADER ── */
+function Header({ onMenuToggle }) {
   return (
-    <header className="bg-gradient-to-r from-forest-900 via-forest-800 to-forest-900 px-4 py-3 flex items-center gap-3 sticky top-0 z-50 shadow-lg">
-      <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center text-xl backdrop-blur-sm">♻</div>
+    <header className="bg-gradient-to-r from-forest-950 via-forest-900 to-forest-950 px-4 py-3 flex items-center gap-3 sticky top-0 z-40 shadow-xl">
+      <button onClick={onMenuToggle} className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center active:bg-white/20 transition-colors">
+        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16"/>
+        </svg>
+      </button>
       <div className="flex-1 min-w-0">
-        <h1 className="text-white font-extrabold text-lg tracking-tight leading-tight">AGM Offers</h1>
-        <p className="text-forest-400 text-[10px] tracking-widest uppercase">Wastewater Equipment</p>
+        <h1 className="text-white font-extrabold text-lg tracking-tight leading-tight">AGM Eco Solutions</h1>
+        <p className="text-forest-400 text-[10px] tracking-widest uppercase">Wastewater Treatment Equipment</p>
       </div>
-      {logoUrl && <img src={logoUrl} className="w-9 h-9 rounded-lg object-contain bg-white/10" />}
+      <img src="images/logos/000-AGMNOVIKOMBIN.logo-oie.png" className="w-10 h-10 rounded-lg object-contain bg-white/10 p-1" />
     </header>
   );
 }
 
+/* ── SIDE DRAWER ── */
+function Drawer({ open, onClose, categories, onSelectCategory, activeCategory }) {
+  if (!open) return null;
+  return (
+    <>
+      <div className="fixed inset-0 bg-black/50 z-50 fade-in" onClick={onClose} />
+      <div className="fixed top-0 left-0 bottom-0 w-[300px] bg-white z-50 shadow-2xl overflow-y-auto" style={{animation:'slideLeft 0.3s ease-out'}}>
+        <div className="bg-gradient-to-br from-forest-900 to-forest-950 p-6 pb-8">
+          <div className="flex items-center justify-between mb-4">
+            <img src="images/logos/000-AGMNOVIKOMBIN.logo-oie.png" className="w-12 h-12 rounded-xl object-contain bg-white/10 p-1" />
+            <button onClick={onClose} className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center">
+              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+            </button>
+          </div>
+          <h2 className="text-white font-bold text-lg">AGM Eco Solutions</h2>
+          <p className="text-forest-400 text-xs mt-1">Product Categories</p>
+        </div>
+        <div className="p-3">
+          <button onClick={() => { onSelectCategory(null); onClose(); }}
+            className={`w-full text-left px-4 py-3 rounded-xl mb-1 flex items-center gap-3 transition-all ${!activeCategory ? 'bg-forest-100 text-forest-800' : 'text-sage-600 hover:bg-sage-50'}`}>
+            <span className="text-lg">📋</span>
+            <div>
+              <div className="font-semibold text-sm">All Products</div>
+              <div className="text-[10px] text-sage-400">{ALL_PRODUCTS.length} items</div>
+            </div>
+          </button>
+          {categories.map(cat => (
+            <button key={cat.id} onClick={() => { onSelectCategory(cat.id); onClose(); }}
+              className={`w-full text-left px-4 py-3 rounded-xl mb-1 flex items-center gap-3 transition-all ${activeCategory === cat.id ? 'bg-forest-100 text-forest-800' : 'text-sage-600 hover:bg-sage-50'}`}>
+              <span className="text-lg">{cat.icon}</span>
+              <div>
+                <div className="font-semibold text-sm">{cat.name}</div>
+                <div className="text-[10px] text-sage-400">{cat.files.length} items</div>
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+    </>
+  );
+}
+
+/* ── SEARCH BAR ── */
 function SearchBar({ value, onChange }) {
   return (
-    <div className="sticky top-[58px] z-40 bg-sage-50/95 backdrop-blur-md px-4 py-3 border-b border-forest-100">
+    <div className="sticky top-[58px] z-30 bg-sage-50/95 backdrop-blur-md px-4 py-3 border-b border-forest-100">
       <div className="relative">
         <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-forest-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
         </svg>
-        <input
-          value={value}
-          onChange={e => onChange(e.target.value)}
+        <input value={value} onChange={e => onChange(e.target.value)}
           placeholder="Search products..."
-          className="w-full pl-11 pr-10 py-3.5 bg-white border-2 border-forest-100 rounded-2xl text-forest-900 placeholder-sage-400 focus:outline-none focus:border-forest-500 shadow-sm text-base"
-        />
+          className="w-full pl-11 pr-10 py-3.5 bg-white border-2 border-forest-100 rounded-2xl text-forest-900 placeholder-sage-400 focus:outline-none focus:border-forest-500 shadow-sm" />
         {value && (
           <button onClick={() => onChange('')} className="absolute right-3.5 top-1/2 -translate-y-1/2 w-7 h-7 bg-sage-100 rounded-full flex items-center justify-center">
             <svg className="w-4 h-4 text-sage-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -144,38 +309,32 @@ function SearchBar({ value, onChange }) {
   );
 }
 
-function ProductGrid({ products, onAdd }) {
-  const [flashId, setFlashId] = useState(null);
-
-  const handleAdd = (p) => {
-    setFlashId(p.filename);
-    onAdd(p);
-    setTimeout(() => setFlashId(null), 400);
-  };
-
+/* ── PRODUCT GRID ── */
+function ProductGrid({ products, onAdd, categoryName }) {
   if (products.length === 0) {
     return (
       <div className="text-center py-16 px-4 fade-in">
         <div className="text-5xl mb-3">🔍</div>
         <p className="text-sage-500 font-medium">No products found</p>
-        <p className="text-sage-400 text-sm mt-1">Try a different keyword</p>
       </div>
     );
   }
-
   return (
     <div className="px-3 py-4">
-      <p className="text-sage-500 text-xs font-medium mb-3 px-1">{products.length} product{products.length !== 1 ? 's' : ''}</p>
+      {categoryName && <div className="flex items-center gap-2 mb-3 px-1">
+        <span className="text-forest-700 font-bold text-sm">{categoryName}</span>
+        <span className="text-sage-400 text-xs">({products.length})</span>
+      </div>}
       <div className="grid grid-cols-3 gap-2.5">
         {products.map(p => (
-          <div key={p.filename}
-            onClick={() => handleAdd(p)}
-            className={`bg-white rounded-2xl overflow-hidden border border-forest-50 shadow-sm active:scale-95 transition-transform cursor-pointer ${flashId === p.filename ? 'added-flash' : ''}`}>
+          <div key={p.path} onClick={() => onAdd(p)}
+            className="bg-white rounded-2xl overflow-hidden border border-forest-50 shadow-sm active:scale-95 transition-transform cursor-pointer group">
             <div className="aspect-square bg-sage-50 p-1.5 flex items-center justify-center">
-              <img src={p.path} alt={p.name} className="max-w-full max-h-full object-contain" loading="lazy" />
+              <img src={p.path} alt={p.name} className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform duration-300" loading="lazy" />
             </div>
             <div className="px-2 py-2">
               <p className="text-[10px] font-semibold text-forest-800 leading-tight line-clamp-2">{p.name}</p>
+              <p className="text-[8px] text-sage-400 mt-0.5">{p.category}</p>
               <div className="flex items-center gap-1 mt-1.5">
                 <svg className="w-3 h-3 text-forest-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4"/>
@@ -190,232 +349,41 @@ function ProductGrid({ products, onAdd }) {
   );
 }
 
-function OfferItem({ item, index, onChange, onRemove }) {
-  const update = (field, val) => onChange(index, { ...item, [field]: val });
-
-  const sub = item.quantity * item.price;
-  const vat = sub * item.vatPercent / 100;
-  const total = sub + vat;
-
-  return (
-    <div className="bg-white rounded-2xl border border-sage-100 p-4 slide-up relative">
-      <button onClick={() => onRemove(index)}
-        className="absolute top-2 right-2 w-7 h-7 bg-red-50 text-red-400 rounded-full flex items-center justify-center active:bg-red-100 z-10">
-        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12"/>
-        </svg>
-      </button>
-
-      <div className="flex gap-3 mb-3">
-        <div className="w-20 h-20 bg-sage-50 rounded-xl overflow-hidden flex items-center justify-center flex-shrink-0">
-          <img src={item.path} alt={item.name} className="max-w-full max-h-full object-contain" />
-        </div>
-        <div className="flex-1 min-w-0 pr-6">
-          <input value={item.name} onChange={e => update('name', e.target.value)}
-            className="w-full font-bold text-forest-900 text-sm bg-transparent border-b border-sage-200 pb-1 focus:outline-none focus:border-forest-500 transition-colors" />
-          <textarea value={item.description} onChange={e => update('description', e.target.value)}
-            placeholder="Description..."
-            rows={2}
-            className="w-full mt-2 text-xs text-sage-600 bg-sage-50 border border-sage-200 rounded-lg p-2 focus:outline-none focus:border-forest-400 resize-none" />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-3 gap-2 mb-3">
-        <div>
-          <label className="block text-[10px] font-semibold text-sage-500 uppercase tracking-wider mb-1">Qty</label>
-          <input type="number" min="1" value={item.quantity} onChange={e => update('quantity', parseInt(e.target.value) || 1)}
-            className="w-full px-3 py-2.5 bg-sage-50 border border-sage-200 rounded-xl text-forest-900 text-sm focus:outline-none focus:border-forest-500" />
-        </div>
-        <div>
-          <label className="block text-[10px] font-semibold text-sage-500 uppercase tracking-wider mb-1">Price €</label>
-          <input type="number" min="0" step="0.01" value={item.price || ''} onChange={e => update('price', parseFloat(e.target.value) || 0)}
-            placeholder="0.00"
-            className="w-full px-3 py-2.5 bg-sage-50 border border-sage-200 rounded-xl text-forest-900 text-sm focus:outline-none focus:border-forest-500" />
-        </div>
-        <div>
-          <label className="block text-[10px] font-semibold text-sage-500 uppercase tracking-wider mb-1">VAT %</label>
-          <input type="number" min="0" max="100" value={item.vatPercent} onChange={e => update('vatPercent', parseFloat(e.target.value) || 0)}
-            className="w-full px-3 py-2.5 bg-sage-50 border border-sage-200 rounded-xl text-forest-900 text-sm focus:outline-none focus:border-forest-500" />
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between px-1 pt-2 border-t border-sage-100">
-        <span className="text-[11px] text-sage-500">Sub: <strong className="text-forest-800">{currency(sub)}</strong></span>
-        <span className="text-[11px] text-sage-500">VAT: <strong className="text-forest-800">{currency(vat)}</strong></span>
-        <span className="text-sm font-bold text-forest-700">{currency(total)}</span>
-      </div>
-    </div>
-  );
-}
-
-function InputField({ label, value, onChange, type='text', placeholder='' }) {
-  return (
-    <div>
-      <label className="block text-[10px] font-semibold text-sage-500 uppercase tracking-wider mb-1">{label}</label>
-      <input type={type} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}
-        className="w-full px-3.5 py-3 bg-sage-50 border border-sage-200 rounded-xl text-forest-900 placeholder-sage-400 focus:outline-none focus:border-forest-500 focus:bg-white transition-all" />
-    </div>
-  );
-}
-
-/* ── SPLASH SCREEN ── */
-function SplashScreen({ onDone }) {
-  const [exiting, setExiting] = useState(false);
-
-  useEffect(() => {
-    const t1 = setTimeout(() => setExiting(true), 2500);
-    const t2 = setTimeout(onDone, 3000);
-    return () => { clearTimeout(t1); clearTimeout(t2); };
-  }, []);
-
-  return (
-    <div onClick={() => { setExiting(true); setTimeout(onDone, 400); }}
-      style={{
-        position:'fixed', inset:0, zIndex:9999,
-        background:'linear-gradient(145deg, #052e16 0%, #14532d 40%, #166534 70%, #15803d 100%)',
-        display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center',
-        animation: exiting ? 'splashOut 0.5s ease-in forwards' : 'none',
-        cursor:'pointer', overflow:'hidden'
-      }}>
-
-      {/* Animated water drops */}
-      {[...Array(12)].map((_, i) => (
-        <div key={i} style={{
-          position:'absolute',
-          left: (10 + Math.random() * 80) + '%',
-          top: (Math.random() * 100) + '%',
-          width: 4 + Math.random() * 4,
-          height: 8 + Math.random() * 6,
-          borderRadius: '50% 50% 50% 50% / 60% 60% 40% 40%',
-          background: `rgba(134,239,172,${0.15 + Math.random() * 0.15})`,
-          animation: `dropFlow ${2 + Math.random() * 3}s ease-in ${Math.random() * 2}s infinite`
-        }} />
-      ))}
-
-      {/* Recycle icon */}
-      <div style={{
-        fontSize: 72,
-        animation: 'splashLogo 1s cubic-bezier(0.34,1.56,0.64,1) forwards',
-        opacity: 0,
-        filter: 'drop-shadow(0 8px 30px rgba(34,197,94,0.4))'
-      }}>
-        &#9851;
-      </div>
-
-      {/* Decorative line */}
-      <div style={{
-        width: 0, height: 2, background: 'linear-gradient(90deg, transparent, #86efac, transparent)',
-        borderRadius: 2, marginTop: 24, marginBottom: 20,
-        animation: 'splashLine 0.8s ease-out 0.6s forwards'
-      }} />
-
-      {/* Company name */}
-      <div style={{
-        fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: 28,
-        color: '#ffffff', letterSpacing: 3,
-        textShadow: '0 2px 20px rgba(34,197,94,0.3)',
-        opacity: 0, animation: 'splashText 0.6s ease-out 0.8s forwards'
-      }}>
-        AGM
-      </div>
-
-      {/* Subtitle */}
-      <div style={{
-        fontFamily: 'Inter, sans-serif', fontWeight: 400, fontSize: 11,
-        color: '#86efac', letterSpacing: 5, textTransform: 'uppercase',
-        marginTop: 8, opacity: 0,
-        animation: 'splashText 0.6s ease-out 1.1s forwards'
-      }}>
-        Offer Generator
-      </div>
-
-      {/* Tagline */}
-      <div style={{
-        fontFamily: 'Inter, sans-serif', fontWeight: 300, fontSize: 10,
-        color: 'rgba(134,239,172,0.5)', letterSpacing: 2, textTransform: 'uppercase',
-        marginTop: 20, opacity: 0,
-        animation: 'splashText 0.6s ease-out 1.4s forwards'
-      }}>
-        Wastewater Treatment Solutions
-      </div>
-
-      {/* Loading dots */}
-      <div style={{
-        position:'absolute', bottom: 60,
-        display:'flex', gap: 8
-      }}>
-        {[0,1,2].map(i => (
-          <div key={i} style={{
-            width: 6, height: 6, borderRadius: '50%',
-            background: '#4ade80',
-            animation: `splashPulse 1.2s ease-in-out ${i * 0.2}s infinite`
-          }} />
-        ))}
-      </div>
-
-      {/* Tap to continue */}
-      <div style={{
-        position:'absolute', bottom: 30,
-        fontFamily: 'Inter, sans-serif', fontSize: 10,
-        color: 'rgba(134,239,172,0.3)', letterSpacing: 2,
-        opacity: 0, animation: 'splashText 0.5s ease-out 2s forwards'
-      }}>
-        TAP TO CONTINUE
-      </div>
-    </div>
-  );
-}
-
-/* ── MAIN APP ── */
-function App() {
-  const [splash, setSplash] = useState(true);
-  const [search, setSearch] = useState('');
-  const [items, setItems] = useState([]);
-  const [company, setCompany] = useState({ name:'', email:'', phone:'', website:'', vat:'' });
+/* ── OFFER PANEL (slide-in from right) ── */
+function OfferPanel({ items, setItems, onClose, onAddMore }) {
+  const [company, setCompany] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('agm_company')) || {}; } catch(e) { return {}; }
+  });
   const [customer, setCustomer] = useState({ name:'', email:'', address:'', phone:'' });
-  const [companyLogo, setCompanyLogo] = useState(null);
   const [notes, setNotes] = useState('');
+  const [companyLogo, setCompanyLogo] = useState(null);
+  const [currency, setCurrency] = useState('BAM'); // BAM or EUR
   const [showCompany, setShowCompany] = useState(false);
   const [showCustomer, setShowCustomer] = useState(false);
-  const [tab, setTab] = useState('catalog'); // catalog | offer
-  const offerRef = useRef(null);
-  let idRef = useRef(0);
 
-  const filtered = useMemo(() => {
-    if (!search.trim()) return PRODUCTS;
-    const q = search.toLowerCase();
-    return PRODUCTS.filter(p => p.name.toLowerCase().includes(q) || p.filename.toLowerCase().includes(q));
-  }, [search]);
+  // Save company to localStorage
+  useEffect(() => {
+    if (company.name) localStorage.setItem('agm_company', JSON.stringify(company));
+  }, [company]);
 
-  const addProduct = useCallback((p) => {
-    const newItem = {
-      id: ++idRef.current,
-      filename: p.filename,
-      name: p.name,
-      path: p.path,
-      description: '',
-      quantity: 1,
-      price: 0,
-      vatPercent: 17
-    };
-    setItems(prev => [...prev, newItem]);
-    setTab('offer');
-    setTimeout(() => {
-      document.getElementById('offer-bottom')?.scrollIntoView({ behavior:'smooth' });
-    }, 150);
-  }, []);
+  const updateItem = (idx, field, val) => {
+    setItems(prev => prev.map((it,i) => i===idx ? {...it, [field]:val} : it));
+  };
+  const removeItem = (idx) => setItems(prev => prev.filter((_,i) => i!==idx));
 
-  const updateItem = useCallback((idx, updated) => {
-    setItems(prev => prev.map((it, i) => i === idx ? updated : it));
-  }, []);
+  const itemTotal = (it) => {
+    const sub = it.quantity * it.price;
+    const afterRebate = sub * (1 - (it.rebate||0)/100);
+    return afterRebate * (1 + it.vatPercent/100);
+  };
+  const itemSubtotal = (it) => it.quantity * it.price * (1 - (it.rebate||0)/100);
+  const itemVat = (it) => itemSubtotal(it) * it.vatPercent / 100;
 
-  const removeItem = useCallback((idx) => {
-    setItems(prev => prev.filter((_, i) => i !== idx));
-  }, []);
-
-  const grandSub = items.reduce((s, i) => s + i.quantity * i.price, 0);
-  const grandVat = items.reduce((s, i) => s + i.quantity * i.price * i.vatPercent / 100, 0);
+  const grandSub = items.reduce((s,i) => s + itemSubtotal(i), 0);
+  const grandVat = items.reduce((s,i) => s + itemVat(i), 0);
   const grandTotal = grandSub + grandVat;
+
+  const fmt = (v) => currency === 'BAM' ? fmtBAM(v) : fmtEUR(v);
 
   const onLogoUpload = (e) => {
     const file = e.target.files[0];
@@ -425,269 +393,361 @@ function App() {
     r.readAsDataURL(file);
   };
 
-  const updateCompany = (field, val) => setCompany(prev => ({ ...prev, [field]: val }));
-  const updateCustomer = (field, val) => setCustomer(prev => ({ ...prev, [field]: val }));
+  const uc = (f,v) => setCompany(p => ({...p,[f]:v}));
+  const ucust = (f,v) => setCustomer(p => ({...p,[f]:v}));
 
-  /* ── PDF GENERATION ── */
+  /* PDF */
   const generatePDF = () => {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF('p','mm','a4');
-    const W=210, margin=15;
-    let y = margin;
+    const W=210, mg=15;
+    let y = mg;
 
-    // Header
-    doc.setFillColor(20,83,45);
-    doc.rect(0,0,W,32,'F');
-    doc.setTextColor(255,255,255);
-    doc.setFontSize(18);
-    doc.setFont('helvetica','bold');
-    doc.text('OFFER', margin, 15);
-    doc.setFontSize(9);
-    doc.setFont('helvetica','normal');
-    doc.text('Wastewater Treatment Equipment', margin, 22);
+    doc.setFillColor(20,83,45); doc.rect(0,0,W,34,'F');
+    doc.setTextColor(255,255,255); doc.setFontSize(20); doc.setFont('helvetica','bold');
+    doc.text('PONUDA / OFFER', mg, 16);
+    doc.setFontSize(9); doc.setFont('helvetica','normal');
+    doc.text('AGM Eco Solutions — Wastewater Treatment Equipment', mg, 23);
     const today = new Date().toLocaleDateString('en-GB');
-    const ref = 'OFF-' + Date.now().toString(36).toUpperCase();
-    doc.text(`Date: ${today}  |  Ref: ${ref}`, W-margin, 15, {align:'right'});
+    const ref = 'AGM-' + Date.now().toString(36).toUpperCase();
+    doc.text(`Datum: ${today}  |  Ref: ${ref}`, W-mg, 16, {align:'right'});
+    doc.text(`Valuta: ${currency}`, W-mg, 23, {align:'right'});
 
-    if (companyLogo) { try { doc.addImage(companyLogo,'PNG',W-margin-22,4,22,22); } catch(e){} }
+    if (companyLogo) { try { doc.addImage(companyLogo,'PNG',W-mg-24,3,24,24); } catch(e){} }
+    y = 44;
 
-    y = 42;
-
-    // From / To
-    doc.setTextColor(20,83,45);
-    doc.setFontSize(10);
-    doc.setFont('helvetica','bold');
-    doc.text('FROM:', margin, y);
-    doc.text('TO:', W/2+5, y);
-    y += 5;
-    doc.setTextColor(60,60,60);
-    doc.setFontSize(9);
-    doc.setFont('helvetica','normal');
-    const cl = [company.name,company.email,company.phone,company.website,company.vat?`VAT: ${company.vat}`:''  ].filter(Boolean);
+    doc.setTextColor(20,83,45); doc.setFontSize(10); doc.setFont('helvetica','bold');
+    doc.text('OD / FROM:', mg, y); doc.text('ZA / TO:', W/2+5, y); y+=5;
+    doc.setTextColor(60,60,60); doc.setFontSize(9); doc.setFont('helvetica','normal');
+    const cl = [company.name,company.email,company.phone,company.website,company.vat?`PDV/VAT: ${company.vat}`:''].filter(Boolean);
     const cul = [customer.name,customer.email,customer.phone,customer.address].filter(Boolean);
-    const mx = Math.max(cl.length,cul.length);
-    for(let i=0;i<mx;i++){
-      if(cl[i]) doc.text(cl[i],margin,y);
+    for(let i=0;i<Math.max(cl.length,cul.length);i++){
+      if(cl[i]) doc.text(cl[i],mg,y);
       if(cul[i]) doc.text(cul[i],W/2+5,y);
       y+=5;
     }
     y+=6;
-
-    // Line
-    doc.setDrawColor(20,83,45); doc.setLineWidth(0.5); doc.line(margin,y,W-margin,y); y+=6;
+    doc.setDrawColor(20,83,45); doc.setLineWidth(0.5); doc.line(mg,y,W-mg,y); y+=6;
 
     // Table header
-    doc.setFillColor(240,253,244); doc.rect(margin,y-4,W-margin*2,8,'F');
-    doc.setTextColor(20,83,45); doc.setFontSize(8); doc.setFont('helvetica','bold');
-    doc.text('#',margin+2,y); doc.text('Product',margin+10,y);
-    doc.text('Qty',120,y); doc.text('Price',135,y); doc.text('VAT%',155,y);
-    doc.text('Total',W-margin,y,{align:'right'}); y+=8;
+    doc.setFillColor(240,253,244); doc.rect(mg,y-4,W-mg*2,8,'F');
+    doc.setTextColor(20,83,45); doc.setFontSize(7.5); doc.setFont('helvetica','bold');
+    doc.text('#',mg+2,y); doc.text('Proizvod',mg+8,y);
+    doc.text('Kol.',105,y); doc.text('Cijena',115,y); doc.text('Rabat',137,y); doc.text('PDV',152,y);
+    doc.text('Ukupno',W-mg,y,{align:'right'}); y+=8;
 
-    // Rows
     doc.setFont('helvetica','normal'); doc.setTextColor(50,50,50);
     items.forEach((item,idx) => {
-      if(y>260) { doc.addPage(); y=margin; }
-      if(idx%2===0){ doc.setFillColor(250,250,245); doc.rect(margin,y-4,W-margin*2,7,'F'); }
-      doc.setFontSize(8);
-      doc.text(`${idx+1}`,margin+2,y);
-      const dn = item.name.length>40 ? item.name.substring(0,37)+'...' : item.name;
-      doc.text(dn,margin+10,y);
-      doc.text(`${item.quantity}`,120,y);
-      doc.text(currency(item.price),135,y);
-      doc.text(`${item.vatPercent}%`,155,y);
-      const t = item.quantity*item.price*(1+item.vatPercent/100);
-      doc.text(currency(t),W-margin,y,{align:'right'});
+      if(y>260){doc.addPage();y=mg;}
+      if(idx%2===0){doc.setFillColor(250,250,245);doc.rect(mg,y-4,W-mg*2,7,'F');}
+      doc.setFontSize(7.5);
+      doc.text(`${idx+1}`,mg+2,y);
+      const dn = item.name.length>35 ? item.name.substring(0,32)+'...' : item.name;
+      doc.text(dn,mg+8,y);
+      doc.text(`${item.quantity}`,105,y);
+      doc.text(fmt(item.price),115,y);
+      doc.text(`${item.rebate||0}%`,137,y);
+      doc.text(`${item.vatPercent}%`,152,y);
+      doc.text(fmt(itemTotal(item)),W-mg,y,{align:'right'});
       y+=7;
       if(item.description){
-        doc.setFontSize(7); doc.setTextColor(120,120,120);
-        doc.splitTextToSize(item.description,100).slice(0,2).forEach(l=>{doc.text(l,margin+10,y);y+=4;});
+        doc.setFontSize(6.5); doc.setTextColor(120,120,120);
+        doc.splitTextToSize(item.description,90).slice(0,2).forEach(l=>{doc.text(l,mg+8,y);y+=3.5;});
         doc.setTextColor(50,50,50);
       }
     });
 
-    y+=4; doc.line(margin,y,W-margin,y); y+=7;
-
-    // Totals
+    y+=4; doc.line(mg,y,W-mg,y); y+=7;
     doc.setFontSize(10); doc.setFont('helvetica','normal');
-    doc.text('Subtotal:',130,y); doc.text(currency(grandSub),W-margin,y,{align:'right'}); y+=6;
-    doc.text('Total VAT:',130,y); doc.text(currency(grandVat),W-margin,y,{align:'right'}); y+=6;
-    doc.setFillColor(20,83,45); doc.rect(125,y-5,W-margin-125,10,'F');
-    doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(11);
-    doc.text('GRAND TOTAL:',130,y+1); doc.text(currency(grandTotal),W-margin-2,y+1,{align:'right'});
-    y+=15;
+    doc.text('Podzbroj / Subtotal:',120,y); doc.text(fmt(grandSub),W-mg,y,{align:'right'}); y+=6;
+    doc.text('PDV / VAT:',120,y); doc.text(fmt(grandVat),W-mg,y,{align:'right'}); y+=6;
+    doc.setFillColor(20,83,45); doc.rect(115,y-5,W-mg-115,12,'F');
+    doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(12);
+    doc.text('UKUPNO:',120,y+2); doc.text(fmt(grandTotal),W-mg-2,y+2,{align:'right'});
+    y+=18;
 
-    // Notes
     if(notes){
-      if(y>260){doc.addPage();y=margin;}
+      if(y>260){doc.addPage();y=mg;}
       doc.setTextColor(20,83,45); doc.setFontSize(10); doc.setFont('helvetica','bold');
-      doc.text('Notes:',margin,y); y+=6;
+      doc.text('Napomene / Notes:',mg,y); y+=6;
       doc.setTextColor(80,80,80); doc.setFontSize(8); doc.setFont('helvetica','normal');
-      doc.splitTextToSize(notes,W-margin*2).forEach(l=>{if(y>285){doc.addPage();y=margin;}doc.text(l,margin,y);y+=4;});
+      doc.splitTextToSize(notes,W-mg*2).forEach(l=>{if(y>285){doc.addPage();y=mg;}doc.text(l,mg,y);y+=4;});
     }
-
     doc.setTextColor(150,150,150); doc.setFontSize(7);
-    doc.text('Generated by AGM Offer Generator',W/2,290,{align:'center'});
-    doc.save(`Offer_${customer.name||'Customer'}_${today.replace(/\//g,'-')}.pdf`);
+    doc.text('Generated by AGM Eco Solutions Offer Generator',W/2,290,{align:'center'});
+    doc.save(`Ponuda_${customer.name||'Kupac'}_${today.replace(/\//g,'-')}.pdf`);
   };
+
+  return (
+    <div className="fixed inset-0 z-50 bg-sage-50 overflow-y-auto slide-right">
+      {/* Offer Header */}
+      <div className="bg-gradient-to-r from-forest-900 to-forest-950 px-4 py-3 flex items-center gap-3 sticky top-0 z-10">
+        <button onClick={onClose} className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center">
+          <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7"/>
+          </svg>
+        </button>
+        <div className="flex-1">
+          <h2 className="text-white font-bold">Offer Template</h2>
+          <p className="text-forest-400 text-[10px]">{items.length} product{items.length!==1?'s':''}</p>
+        </div>
+        {/* Currency toggle */}
+        <button onClick={() => setCurrency(c => c==='BAM'?'EUR':'BAM')}
+          className="px-3 py-1.5 bg-white/10 rounded-lg text-forest-300 text-xs font-bold active:bg-white/20">
+          {currency}
+        </button>
+      </div>
+
+      <div className="px-4 py-4 space-y-4">
+        {/* Company Accordion */}
+        <div className="bg-white rounded-2xl border border-sage-100 overflow-hidden shadow-sm">
+          <button onClick={() => setShowCompany(!showCompany)} className="w-full flex items-center justify-between px-4 py-3.5">
+            <span className="font-bold text-forest-800 text-sm flex items-center gap-2"><span>🏢</span> Company Info</span>
+            <svg className={`w-4 h-4 text-sage-400 transition-transform ${showCompany?'rotate-180':''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7"/></svg>
+          </button>
+          {showCompany && (
+            <div className="px-4 pb-4 space-y-3 slide-up border-t border-sage-100 pt-3">
+              <Field label="Company Name" value={company.name||''} onChange={v=>uc('name',v)} placeholder="AGM Eco Solutions" />
+              <div>
+                <label className="block text-[10px] font-semibold text-sage-500 uppercase tracking-wider mb-1">Logo</label>
+                <label className="flex items-center gap-2 px-3.5 py-3 bg-sage-50 border border-sage-200 rounded-xl cursor-pointer text-sm text-sage-500">
+                  📎 {companyLogo ? 'Logo uploaded ✓' : 'Upload logo...'}
+                  <input type="file" accept="image/*" onChange={onLogoUpload} className="hidden" />
+                </label>
+              </div>
+              <Field label="Email" value={company.email||''} onChange={v=>uc('email',v)} type="email" placeholder="info@agm.ba" />
+              <Field label="Phone" value={company.phone||''} onChange={v=>uc('phone',v)} type="tel" placeholder="+387 00 000 000" />
+              <Field label="Website" value={company.website||''} onChange={v=>uc('website',v)} placeholder="www.agm.ba" />
+              <Field label="PDV/VAT Number" value={company.vat||''} onChange={v=>uc('vat',v)} placeholder="PDV/ID broj" />
+            </div>
+          )}
+        </div>
+
+        {/* Customer Accordion */}
+        <div className="bg-white rounded-2xl border border-sage-100 overflow-hidden shadow-sm">
+          <button onClick={() => setShowCustomer(!showCustomer)} className="w-full flex items-center justify-between px-4 py-3.5">
+            <span className="font-bold text-forest-800 text-sm flex items-center gap-2"><span>👤</span> Customer Info</span>
+            <svg className={`w-4 h-4 text-sage-400 transition-transform ${showCustomer?'rotate-180':''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7"/></svg>
+          </button>
+          {showCustomer && (
+            <div className="px-4 pb-4 space-y-3 slide-up border-t border-sage-100 pt-3">
+              <Field label="Customer Name" value={customer.name} onChange={v=>ucust('name',v)} placeholder="Ime kupca" />
+              <Field label="Email" value={customer.email} onChange={v=>ucust('email',v)} type="email" placeholder="kupac@email.com" />
+              <Field label="Phone" value={customer.phone} onChange={v=>ucust('phone',v)} type="tel" />
+              <Field label="Address" value={customer.address} onChange={v=>ucust('address',v)} placeholder="Adresa" />
+            </div>
+          )}
+        </div>
+
+        {/* Product Items */}
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-bold text-forest-800 text-sm">Products ({items.length})</h3>
+            <button onClick={onAddMore}
+              className="flex items-center gap-1 bg-forest-700 text-white px-4 py-2 rounded-full text-xs font-semibold active:scale-95 transition-transform shadow-md">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4"/>
+              </svg>
+              Add Product
+            </button>
+          </div>
+
+          <div className="space-y-3">
+            {items.map((item,idx) => (
+              <div key={item.id} className="bg-white rounded-2xl border border-sage-100 p-4 slide-up relative">
+                <button onClick={() => removeItem(idx)}
+                  className="absolute top-2 right-2 w-7 h-7 bg-red-50 text-red-400 rounded-full flex items-center justify-center z-10">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12"/>
+                  </svg>
+                </button>
+
+                <div className="flex gap-3 mb-3">
+                  <div className="w-20 h-20 bg-sage-50 rounded-xl overflow-hidden flex items-center justify-center flex-shrink-0">
+                    <img src={item.path} alt={item.name} className="max-w-full max-h-full object-contain" />
+                  </div>
+                  <div className="flex-1 min-w-0 pr-6">
+                    <input value={item.name} onChange={e => updateItem(idx,'name',e.target.value)}
+                      className="w-full font-bold text-forest-900 text-sm bg-transparent border-b border-sage-200 pb-1 focus:outline-none focus:border-forest-500" />
+                    <p className="text-[9px] text-sage-400 mt-1">{item.category}</p>
+                    <textarea value={item.description} onChange={e => updateItem(idx,'description',e.target.value)}
+                      placeholder="Opis / Description..." rows={2}
+                      className="w-full mt-2 text-xs text-sage-600 bg-sage-50 border border-sage-200 rounded-lg p-2 focus:outline-none focus:border-forest-400 resize-none" />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-4 gap-2 mb-3">
+                  <div>
+                    <label className="block text-[9px] font-semibold text-sage-500 uppercase mb-1">Qty</label>
+                    <input type="number" min="1" value={item.quantity} onChange={e => updateItem(idx,'quantity',parseInt(e.target.value)||1)}
+                      className="w-full px-2 py-2.5 bg-sage-50 border border-sage-200 rounded-xl text-forest-900 text-sm focus:outline-none focus:border-forest-500" />
+                  </div>
+                  <div>
+                    <label className="block text-[9px] font-semibold text-sage-500 uppercase mb-1">Price</label>
+                    <input type="number" min="0" step="0.01" value={item.price||''} onChange={e => updateItem(idx,'price',parseFloat(e.target.value)||0)}
+                      placeholder="0.00"
+                      className="w-full px-2 py-2.5 bg-sage-50 border border-sage-200 rounded-xl text-forest-900 text-sm focus:outline-none focus:border-forest-500" />
+                  </div>
+                  <div>
+                    <label className="block text-[9px] font-semibold text-sage-500 uppercase mb-1">VAT %</label>
+                    <input type="number" min="0" max="100" value={item.vatPercent} onChange={e => updateItem(idx,'vatPercent',parseFloat(e.target.value)||0)}
+                      className="w-full px-2 py-2.5 bg-sage-50 border border-sage-200 rounded-xl text-forest-900 text-sm focus:outline-none focus:border-forest-500" />
+                  </div>
+                  <div>
+                    <label className="block text-[9px] font-semibold text-sage-500 uppercase mb-1">Rabat %</label>
+                    <input type="number" min="0" max="100" value={item.rebate||''} onChange={e => updateItem(idx,'rebate',parseFloat(e.target.value)||0)}
+                      placeholder="0"
+                      className="w-full px-2 py-2.5 bg-sage-50 border border-sage-200 rounded-xl text-forest-900 text-sm focus:outline-none focus:border-forest-500" />
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between px-1 pt-2 border-t border-sage-100">
+                  <span className="text-[10px] text-sage-500">Sub: <strong className="text-forest-800">{fmt(itemSubtotal(item))}</strong></span>
+                  <span className="text-[10px] text-sage-500">PDV: <strong className="text-forest-800">{fmt(itemVat(item))}</strong></span>
+                  <span className="text-sm font-bold text-forest-700">{fmt(itemTotal(item))}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Notes */}
+        <div className="bg-white rounded-2xl border border-sage-100 p-4 shadow-sm">
+          <label className="block text-[10px] font-semibold text-sage-500 uppercase tracking-wider mb-2">Napomene / Notes</label>
+          <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={3}
+            placeholder="Uslovi placanja, rok isporuke..."
+            className="w-full px-3.5 py-3 bg-sage-50 border border-sage-200 rounded-xl text-forest-900 placeholder-sage-400 focus:outline-none focus:border-forest-500 resize-none text-sm" />
+        </div>
+
+        {/* Totals & Export */}
+        <div className="bg-gradient-to-br from-forest-800 to-forest-950 rounded-2xl p-5 text-white shadow-xl">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-forest-400 text-[10px] uppercase tracking-widest">Summary</p>
+            <span className="text-forest-400 text-xs font-bold">{currency}</span>
+          </div>
+          <div className="space-y-1 mb-3">
+            <div className="flex justify-between text-sm"><span className="text-forest-300">Podzbroj</span><span className="font-semibold">{fmt(grandSub)}</span></div>
+            <div className="flex justify-between text-sm"><span className="text-forest-300">PDV</span><span className="font-semibold">{fmt(grandVat)}</span></div>
+            <div className="flex justify-between text-lg font-bold pt-2 border-t border-forest-700">
+              <span className="text-forest-100">Ukupno</span>
+              <span className="text-forest-300">{fmt(grandTotal)}</span>
+            </div>
+          </div>
+          <div className="flex gap-2 mt-4">
+            <button onClick={generatePDF}
+              className="flex-1 bg-forest-500 hover:bg-forest-400 text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-2 text-sm active:scale-95 transition-transform shadow-lg">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+              </svg>
+              Download PDF
+            </button>
+            <button onClick={() => { setItems([]); setNotes(''); }}
+              className="bg-white/10 text-white font-medium px-5 py-4 rounded-2xl text-sm active:scale-95">Clear</button>
+          </div>
+        </div>
+        <div className="h-8" />
+      </div>
+    </div>
+  );
+}
+
+function Field({ label, value, onChange, type='text', placeholder='' }) {
+  return (
+    <div>
+      <label className="block text-[10px] font-semibold text-sage-500 uppercase tracking-wider mb-1">{label}</label>
+      <input type={type} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}
+        className="w-full px-3.5 py-3 bg-sage-50 border border-sage-200 rounded-xl text-forest-900 placeholder-sage-400 focus:outline-none focus:border-forest-500 focus:bg-white transition-all" />
+    </div>
+  );
+}
+
+/* ── MAIN APP ── */
+function App() {
+  const [splash, setSplash] = useState(true);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [search, setSearch] = useState('');
+  const [activeCategory, setActiveCategory] = useState(null);
+  const [offerItems, setOfferItems] = useState([]);
+  const [showOffer, setShowOffer] = useState(false);
+  let idRef = useRef(0);
+
+  const filtered = useMemo(() => {
+    let list = activeCategory
+      ? ALL_PRODUCTS.filter(p => p.categoryId === activeCategory)
+      : ALL_PRODUCTS;
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      list = list.filter(p => p.name.toLowerCase().includes(q) || p.filename.toLowerCase().includes(q) || p.category.toLowerCase().includes(q));
+    }
+    return list;
+  }, [search, activeCategory]);
+
+  const activeCatName = activeCategory ? CATEGORIES.find(c=>c.id===activeCategory)?.name : null;
+
+  const addProduct = useCallback((p) => {
+    setOfferItems(prev => [...prev, {
+      id: ++idRef.current,
+      filename: p.filename,
+      name: p.name,
+      path: p.path,
+      category: p.category,
+      description: '',
+      quantity: 1,
+      price: 0,
+      vatPercent: 17,
+      rebate: 0
+    }]);
+    setShowOffer(true);
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col">
       {splash && <SplashScreen onDone={() => setSplash(false)} />}
-      <Header logoUrl={companyLogo} />
 
-      {/* Tab Bar */}
-      <div className="flex bg-white border-b border-sage-200 sticky top-[58px] z-40">
-        <button onClick={() => setTab('catalog')}
-          className={`flex-1 py-3 text-sm font-semibold text-center transition-colors relative ${tab==='catalog' ? 'text-forest-700' : 'text-sage-400'}`}>
-          Catalog
-          {tab==='catalog' && <div className="absolute bottom-0 left-4 right-4 h-[3px] bg-forest-600 rounded-full"/>}
+      <Drawer open={drawerOpen} onClose={() => setDrawerOpen(false)}
+        categories={CATEGORIES} onSelectCategory={setActiveCategory} activeCategory={activeCategory} />
+
+      <Header onMenuToggle={() => setDrawerOpen(true)} />
+      <SearchBar value={search} onChange={setSearch} />
+
+      {/* Category chips */}
+      <div className="flex gap-2 px-4 py-3 overflow-x-auto" style={{WebkitOverflowScrolling:'touch'}}>
+        <button onClick={() => setActiveCategory(null)}
+          className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${!activeCategory ? 'bg-forest-700 text-white shadow-md' : 'bg-white text-sage-600 border border-sage-200'}`}>
+          All
         </button>
-        <button onClick={() => setTab('offer')}
-          className={`flex-1 py-3 text-sm font-semibold text-center transition-colors relative ${tab==='offer' ? 'text-forest-700' : 'text-sage-400'}`}>
-          Offer {items.length > 0 && <span className="ml-1 bg-forest-600 text-white text-[10px] px-1.5 py-0.5 rounded-full">{items.length}</span>}
-          {tab==='offer' && <div className="absolute bottom-0 left-4 right-4 h-[3px] bg-forest-600 rounded-full"/>}
-        </button>
+        {CATEGORIES.map(cat => (
+          <button key={cat.id} onClick={() => setActiveCategory(activeCategory===cat.id ? null : cat.id)}
+            className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap ${activeCategory===cat.id ? 'bg-forest-700 text-white shadow-md' : 'bg-white text-sage-600 border border-sage-200'}`}>
+            {cat.icon} {cat.name}
+          </button>
+        ))}
       </div>
 
-      {/* CATALOG TAB */}
-      {tab === 'catalog' && (
-        <div className="flex-1">
-          <SearchBar value={search} onChange={setSearch} />
-          <ProductGrid products={filtered} onAdd={addProduct} />
-        </div>
+      <ProductGrid products={filtered} onAdd={addProduct} categoryName={activeCatName} />
+
+      {/* Floating offer button */}
+      {offerItems.length > 0 && !showOffer && (
+        <button onClick={() => setShowOffer(true)}
+          className="fixed bottom-6 right-4 bg-forest-700 text-white px-5 py-4 rounded-2xl shadow-2xl flex items-center gap-2 active:scale-95 transition-transform z-40 pop-in"
+          style={{boxShadow:'0 8px 30px rgba(20,83,45,0.4)'}}>
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+          </svg>
+          <span className="font-bold text-sm">Offer</span>
+          <span className="bg-white text-forest-800 text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center">{offerItems.length}</span>
+        </button>
       )}
 
-      {/* OFFER TAB */}
-      {tab === 'offer' && (
-        <div className="flex-1 px-4 py-4 space-y-4" ref={offerRef}>
-
-          {items.length === 0 ? (
-            <div className="text-center py-20 fade-in">
-              <div className="text-5xl mb-4">📋</div>
-              <p className="text-sage-600 font-semibold text-lg">No products yet</p>
-              <p className="text-sage-400 text-sm mt-1 mb-6">Go to Catalog to add products</p>
-              <button onClick={() => setTab('catalog')}
-                className="bg-forest-700 text-white px-6 py-3 rounded-2xl font-semibold text-sm active:scale-95 transition-transform">
-                Browse Catalog
-              </button>
-            </div>
-          ) : (
-            <>
-              {/* Company Info Accordion */}
-              <div className="bg-white rounded-2xl border border-sage-100 overflow-hidden shadow-sm">
-                <button onClick={() => setShowCompany(!showCompany)}
-                  className="w-full flex items-center justify-between px-4 py-3.5">
-                  <span className="font-bold text-forest-800 text-sm flex items-center gap-2">
-                    <span className="text-base">🏢</span> Company Info
-                  </span>
-                  <svg className={`w-4 h-4 text-sage-400 transition-transform ${showCompany?'rotate-180':''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7"/>
-                  </svg>
-                </button>
-                {showCompany && (
-                  <div className="px-4 pb-4 space-y-3 slide-up border-t border-sage-100 pt-3">
-                    <InputField label="Company Name" value={company.name} onChange={v => updateCompany('name',v)} placeholder="Your company" />
-                    <div>
-                      <label className="block text-[10px] font-semibold text-sage-500 uppercase tracking-wider mb-1">Logo</label>
-                      <label className="flex items-center gap-2 px-3.5 py-3 bg-sage-50 border border-sage-200 rounded-xl cursor-pointer text-sm text-sage-500 active:bg-sage-100">
-                        📎 {companyLogo ? 'Logo uploaded ✓' : 'Upload logo...'}
-                        <input type="file" accept="image/*" onChange={onLogoUpload} className="hidden" />
-                      </label>
-                    </div>
-                    <InputField label="Email" value={company.email} onChange={v => updateCompany('email',v)} type="email" placeholder="info@company.com" />
-                    <InputField label="Phone" value={company.phone} onChange={v => updateCompany('phone',v)} type="tel" placeholder="+387 00 000 000" />
-                    <InputField label="Website" value={company.website} onChange={v => updateCompany('website',v)} placeholder="www.company.com" />
-                    <InputField label="VAT Number" value={company.vat} onChange={v => updateCompany('vat',v)} placeholder="VAT/ID number" />
-                  </div>
-                )}
-              </div>
-
-              {/* Customer Info Accordion */}
-              <div className="bg-white rounded-2xl border border-sage-100 overflow-hidden shadow-sm">
-                <button onClick={() => setShowCustomer(!showCustomer)}
-                  className="w-full flex items-center justify-between px-4 py-3.5">
-                  <span className="font-bold text-forest-800 text-sm flex items-center gap-2">
-                    <span className="text-base">👤</span> Customer Info
-                  </span>
-                  <svg className={`w-4 h-4 text-sage-400 transition-transform ${showCustomer?'rotate-180':''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7"/>
-                  </svg>
-                </button>
-                {showCustomer && (
-                  <div className="px-4 pb-4 space-y-3 slide-up border-t border-sage-100 pt-3">
-                    <InputField label="Customer Name" value={customer.name} onChange={v => updateCustomer('name',v)} placeholder="Customer / Company" />
-                    <InputField label="Email" value={customer.email} onChange={v => updateCustomer('email',v)} type="email" placeholder="customer@email.com" />
-                    <InputField label="Phone" value={customer.phone} onChange={v => updateCustomer('phone',v)} type="tel" placeholder="+387 00 000 000" />
-                    <InputField label="Address" value={customer.address} onChange={v => updateCustomer('address',v)} placeholder="Full address" />
-                  </div>
-                )}
-              </div>
-
-              {/* Product Items */}
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-bold text-forest-800 text-sm">Products ({items.length})</h3>
-                  <button onClick={() => setTab('catalog')}
-                    className="flex items-center gap-1 bg-forest-700 text-white px-4 py-2 rounded-full text-xs font-semibold active:scale-95 transition-transform shadow-md">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4"/>
-                    </svg>
-                    Add Product
-                  </button>
-                </div>
-                <div className="space-y-3">
-                  {items.map((item, i) => (
-                    <OfferItem key={item.id} item={item} index={i} onChange={updateItem} onRemove={removeItem} />
-                  ))}
-                </div>
-              </div>
-
-              {/* Notes */}
-              <div className="bg-white rounded-2xl border border-sage-100 p-4 shadow-sm">
-                <label className="block text-[10px] font-semibold text-sage-500 uppercase tracking-wider mb-2">Notes & Terms</label>
-                <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={3}
-                  placeholder="Payment terms, delivery conditions..."
-                  className="w-full px-3.5 py-3 bg-sage-50 border border-sage-200 rounded-xl text-forest-900 placeholder-sage-400 focus:outline-none focus:border-forest-500 resize-none text-sm" />
-              </div>
-
-              {/* Totals & PDF */}
-              <div className="bg-gradient-to-br from-forest-800 to-forest-950 rounded-2xl p-5 text-white shadow-xl">
-                <p className="text-forest-400 text-[10px] uppercase tracking-widest mb-2">Summary</p>
-                <div className="space-y-1 mb-3">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-forest-300">Subtotal</span>
-                    <span className="font-semibold">{currency(grandSub)}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-forest-300">VAT</span>
-                    <span className="font-semibold">{currency(grandVat)}</span>
-                  </div>
-                  <div className="flex justify-between text-lg font-bold pt-2 border-t border-forest-700">
-                    <span className="text-forest-100">Grand Total</span>
-                    <span className="text-forest-300">{currency(grandTotal)}</span>
-                  </div>
-                </div>
-                <div className="flex gap-2 mt-4">
-                  <button onClick={generatePDF}
-                    className="flex-1 bg-forest-500 hover:bg-forest-400 text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-2 text-sm active:scale-95 transition-transform shadow-lg">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                    </svg>
-                    Download PDF
-                  </button>
-                  <button onClick={() => { setItems([]); setNotes(''); }}
-                    className="bg-white/10 text-white font-medium px-5 py-4 rounded-2xl text-sm active:scale-95 transition-transform">
-                    Clear
-                  </button>
-                </div>
-              </div>
-
-              <div id="offer-bottom" className="h-4" />
-            </>
-          )}
-        </div>
+      {/* Offer Panel */}
+      {showOffer && (
+        <OfferPanel
+          items={offerItems}
+          setItems={setOfferItems}
+          onClose={() => setShowOffer(false)}
+          onAddMore={() => setShowOffer(false)}
+        />
       )}
-
     </div>
   );
 }

@@ -1,0 +1,22 @@
+{
+  "name": "AGM Eco Solutions - Offer Generator",
+  "short_name": "AGM Offers",
+  "description": "Wastewater Treatment Equipment Offer Generator",
+  "start_url": "./mobile.html",
+  "display": "standalone",
+  "background_color": "#052e16",
+  "theme_color": "#052e16",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "images/logos/000-AGMNOVIKOMBIN.logo-oie.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "images/logos/000-AGMNOVIKOMBIN.logo-oie.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
