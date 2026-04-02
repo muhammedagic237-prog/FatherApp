@@ -488,17 +488,17 @@ function App() {
   const [currency,setCurrency]=useState('BAM');
   const idRef=useRef(0);
 
+  // Floating green particles for header — must be before early return
+  const headerParticles = useMemo(() => Array.from({length:20},(_,i) => ({
+    i, left:Math.random()*100, dur:4+Math.random()*4, delay:Math.random()*5,
+    size:3+Math.random()*5
+  })),[]);
+
   const addToOffer=useCallback((prod,catName)=>{
     setOfferItems(p=>[...p,{id:++idRef.current,name:prod.name,imgData:prod.data,category:catName,description:'',quantity:1,price:0,vatPercent:17,rebate:0}]);
   },[]);
 
   if(splash) return <Splash onDone={()=>setSplash(false)}/>;
-
-  // Floating green particles for header
-  const headerParticles = useMemo(() => Array.from({length:20},(_,i) => ({
-    i, left:Math.random()*100, dur:4+Math.random()*4, delay:Math.random()*5,
-    size:3+Math.random()*5
-  })),[]);
 
   return (
     <div style={{height:'100vh',display:'flex',flexDirection:'column',overflow:'hidden'}}>
