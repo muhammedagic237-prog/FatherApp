@@ -12,7 +12,10 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@400;600;700&family=Dancing+Script:wght@500;600;700&display=swap" rel="stylesheet" />
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
-    body{font-family:'Inter',sans-serif;background:#f8faf7;overflow:hidden;height:100vh}
+    body{font-family:'Inter',sans-serif;background:#f8faf7;overflow:hidden;height:100vh;cursor:default}
+    *{cursor:default}
+    button,input,textarea,select,[role="button"],.product-card,.menu-item{cursor:pointer!important}
+    input,textarea{cursor:text!important}
     .playfair{font-family:'Playfair Display',serif}
     ::-webkit-scrollbar{width:5px}
     ::-webkit-scrollbar-track{background:transparent}
@@ -446,6 +449,15 @@ function OfferPanel({items,setItems,currency,setCurrency}) {
                       style={{width:'100%',fontSize:12,fontWeight:600,color:'rgb(34,97,45)',border:'none',borderBottom:'1px solid rgba(34,97,45,0.1)',padding:'2px 0',outline:'none',background:'transparent',fontFamily:'Inter'}}/>
                     <div style={{fontSize:9,color:'rgba(34,97,45,0.35)',marginTop:2}}>{item.category}</div>
                   </div>
+                </div>
+                {/* Description field */}
+                <div style={{marginBottom:8}}>
+                  <div style={{fontSize:8,fontWeight:700,color:'rgba(34,97,45,0.4)',marginBottom:3}}>OPIS / DESCRIPTION</div>
+                  <textarea value={item.description||''} onChange={e=>updateItem(idx,'description',e.target.value)}
+                    placeholder="Unesite opis proizvoda..."
+                    rows={2}
+                    style={{width:'100%',padding:'8px 10px',fontSize:12,border:'1px solid rgba(34,97,45,0.1)',borderRadius:8,outline:'none',resize:'vertical',
+                      background:'rgba(34,97,45,0.02)',fontFamily:'Inter',color:'rgb(34,97,45)',lineHeight:1.4}} />
                 </div>
                 <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr 1fr',gap:4}}>
                   {[['quantity','Kol.',item.quantity,'number'],['price','Cijena',item.price||'','number'],['vatPercent','PDV%',item.vatPercent,'number'],['rebate','Rabat%',item.rebate||'','number']].map(([f,l,v,t])=>(
