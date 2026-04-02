@@ -45,16 +45,14 @@
     ::-webkit-scrollbar{width:0;background:transparent}
 
     /* SPLASH ANIMATIONS */
-    @keyframes splashLogoIn{0%{opacity:0;transform:scale(0.4)}40%{opacity:1;transform:scale(1.05)}60%{transform:scale(0.97)}100%{transform:scale(1)}}
-    @keyframes sparkle{0%{opacity:0;transform:scale(0) rotate(0deg)}50%{opacity:1;transform:scale(1) rotate(180deg)}100%{opacity:0;transform:scale(0) rotate(360deg)}}
-    @keyframes leafFloat{0%{opacity:0;transform:translateY(30px) rotate(-30deg) scale(0)}30%{opacity:1}70%{opacity:1}100%{opacity:0;transform:translateY(-60px) rotate(30deg) scale(1.2)}}
-    @keyframes leafGrow{0%{opacity:0;transform:scale(0) rotate(-45deg)}50%{opacity:1;transform:scale(1.1) rotate(5deg)}100%{opacity:1;transform:scale(1) rotate(0deg)}}
-    @keyframes waterDrop{0%{transform:scaleY(0);opacity:0}20%{transform:scaleY(1);opacity:1}40%{transform:scaleY(0.7) scaleX(1.3);opacity:1}60%{transform:scaleY(1.1) scaleX(0.9)}80%{transform:scaleY(0.95) scaleX(1.05)}100%{transform:scaleY(1) scaleX(1);opacity:1}}
-    @keyframes ripple{0%{transform:scale(0);opacity:0.6}100%{transform:scale(4);opacity:0}}
-    @keyframes waterSplash{0%{transform:translateY(0) scale(1);opacity:1}50%{transform:translateY(-40px) scale(0.8);opacity:0.8}100%{transform:translateY(-80px) scale(0.3);opacity:0}}
-    @keyframes splashFadeOut{0%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.15)}}
-    @keyframes glowPulse{0%,100%{filter:drop-shadow(0 0 15px rgba(134,239,172,0.3))}50%{filter:drop-shadow(0 0 40px rgba(134,239,172,0.7))}}
-    @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+    @keyframes splashTextIn{0%{opacity:0;transform:translateY(20px)}100%{opacity:1;transform:translateY(0)}}
+    @keyframes splashLogoScale{0%{opacity:0;transform:scale(0.5)}50%{opacity:1;transform:scale(1.03)}100%{opacity:1;transform:scale(1)}}
+    @keyframes riverFlow{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+    @keyframes splashDrop{0%{r:6;opacity:0.8}100%{r:35;opacity:0}}
+    @keyframes splashFadeOut{0%{opacity:1}100%{opacity:0}}
+    @keyframes sparkleGreen{0%{opacity:0;transform:scale(0) rotate(0)}40%{opacity:1;transform:scale(1) rotate(90deg)}100%{opacity:0;transform:scale(0.3) rotate(180deg)}}
+    @keyframes leafDrift{0%{opacity:0;transform:translateY(40px) rotate(-20deg)}40%{opacity:0.9}80%{opacity:0.9}100%{opacity:0;transform:translateY(-50px) rotate(25deg)}}
+    @keyframes leafBloom{0%{opacity:0;transform:scale(0) rotate(-30deg)}60%{opacity:1;transform:scale(1.15) rotate(5deg)}100%{opacity:1;transform:scale(1) rotate(0)}}
   </style>
 </head>
 <body>
@@ -123,179 +121,145 @@ function fmtEUR(v) { return new Intl.NumberFormat('de-DE',{style:'currency',curr
 
 /* ── SPLASH SCREEN ── */
 function SplashScreen({ onDone }) {
-  const [phase, setPhase] = useState('logo'); // logo -> water -> exit
+  const [fading, setFading] = useState(false);
   useEffect(() => {
-    const t1 = setTimeout(() => setPhase('water'), 2500);
-    const t2 = setTimeout(() => setPhase('exit'), 2500 + 700);
-    const t3 = setTimeout(onDone, 2500 + 700 + 500);
-    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
+    const t1 = setTimeout(() => setFading(true), 2000);
+    const t2 = setTimeout(onDone, 2500);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
   }, []);
 
-  // Sparkle particles
-  const sparkles = useMemo(() => Array.from({length:18}, (_,i) => ({
-    id:i,
-    left: 10 + Math.random()*80,
-    top: 10 + Math.random()*80,
-    size: 4 + Math.random()*8,
-    delay: Math.random()*2,
-    dur: 1.2 + Math.random()*1.5
+  const sparkles = useMemo(() => Array.from({length:20}, (_,i) => ({
+    i, left:5+Math.random()*90, top:5+Math.random()*90,
+    size:3+Math.random()*7, delay:Math.random()*2.2, dur:1+Math.random()*1.5
   })), []);
 
-  // Floating leaves
-  const leaves = useMemo(() => Array.from({length:8}, (_,i) => ({
-    id:i,
-    left: 5 + Math.random()*90,
-    top: 30 + Math.random()*50,
-    size: 14 + Math.random()*14,
-    delay: 0.3 + Math.random()*1.5,
-    dur: 2 + Math.random()*1.5,
-    emoji: ['🌿','🍃','🌱','☘️'][Math.floor(Math.random()*4)]
+  const leaves = useMemo(() => Array.from({length:10}, (_,i) => ({
+    i, left:Math.random()*100, top:20+Math.random()*60,
+    size:12+Math.random()*16, delay:0.2+Math.random()*1.8, dur:2+Math.random()*1.5,
+    emoji:['🌿','🍃','🌱','☘️','🍀'][i%5]
   })), []);
 
-  // Blooming leaves around logo
-  const bloomLeaves = useMemo(() => Array.from({length:6}, (_,i) => ({
-    id:i,
-    angle: i * 60,
-    dist: 120 + Math.random()*40,
-    size: 18 + Math.random()*10,
-    delay: 0.8 + i*0.15
+  const blooms = useMemo(() => Array.from({length:8}, (_,i) => ({
+    i, angle:i*45, dist:100+Math.random()*50, size:16+Math.random()*12, delay:0.6+i*0.12
   })), []);
 
-  // Water splash drops
-  const waterDrops = useMemo(() => Array.from({length:12}, (_,i) => ({
-    id:i,
-    left: 30 + Math.random()*40,
-    angle: -60 + Math.random()*120,
-    dist: 40 + Math.random()*80,
-    size: 4 + Math.random()*6,
-    delay: Math.random()*0.3
+  const splashDrops = useMemo(() => Array.from({length:8}, (_,i) => ({
+    i, cx:80+Math.random()*140, cy:20+Math.random()*80, delay:i*0.4, dur:0.6
   })), []);
 
   return (
     <div style={{
-      position:'fixed', inset:0, zIndex:9999,
-      background:'radial-gradient(ellipse at 30% 20%, #1a3a1a 0%, #0d1f0d 40%, #080f08 100%)',
-      display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center',
-      overflow:'hidden',
-      animation: phase==='exit' ? 'splashFadeOut 0.5s ease-in forwards' : 'none'
+      position:'fixed',inset:0,zIndex:9999,overflow:'hidden',
+      background:'linear-gradient(160deg, #0a2e1a 0%, #0d3b2a 30%, #0e4a3a 60%, #0a3d3d 100%)',
+      display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',
+      animation: fading ? 'splashFadeOut 0.5s ease-in forwards' : 'none'
     }}>
 
       {/* Green sparkle particles */}
       {sparkles.map(s => (
-        <div key={s.id} style={{
-          position:'absolute', left:s.left+'%', top:s.top+'%',
-          width:s.size, height:s.size, borderRadius:'50%',
-          background:'radial-gradient(circle, rgba(134,239,172,0.9) 0%, rgba(74,222,128,0.4) 50%, transparent 70%)',
-          animation: `sparkle ${s.dur}s ease-in-out ${s.delay}s infinite`,
-          pointerEvents:'none'
+        <div key={s.i} style={{
+          position:'absolute',left:s.left+'%',top:s.top+'%',
+          width:s.size,height:s.size,borderRadius:'50%',
+          background:'radial-gradient(circle, rgba(134,239,172,0.95) 0%, rgba(74,222,128,0.3) 60%, transparent 80%)',
+          boxShadow:'0 0 6px rgba(134,239,172,0.4)',
+          animation:`sparkleGreen ${s.dur}s ease-in-out ${s.delay}s infinite`,pointerEvents:'none'
         }} />
       ))}
 
       {/* Floating leaves */}
       {leaves.map(l => (
-        <div key={l.id} style={{
-          position:'absolute', left:l.left+'%', top:l.top+'%',
-          fontSize:l.size, opacity:0,
-          animation: `leafFloat ${l.dur}s ease-in-out ${l.delay}s infinite`,
-          pointerEvents:'none'
+        <div key={l.i} style={{
+          position:'absolute',left:l.left+'%',top:l.top+'%',
+          fontSize:l.size,opacity:0,
+          animation:`leafDrift ${l.dur}s ease-in-out ${l.delay}s infinite`,pointerEvents:'none'
         }}>{l.emoji}</div>
       ))}
 
       {/* Blooming leaves around logo */}
-      {bloomLeaves.map(bl => {
-        const rad = bl.angle * Math.PI / 180;
-        const x = Math.cos(rad) * bl.dist;
-        const y = Math.sin(rad) * bl.dist;
+      {blooms.map(bl => {
+        const r=bl.angle*Math.PI/180;
         return (
-          <div key={bl.id} style={{
+          <div key={bl.i} style={{
             position:'absolute',
-            left: `calc(50% + ${x}px)`, top: `calc(45% + ${y}px)`,
-            fontSize: bl.size, opacity:0,
-            animation: `leafGrow 1.2s ease-out ${bl.delay}s forwards`,
-            transform: 'scale(0)',
-            pointerEvents:'none'
+            left:`calc(50% + ${Math.cos(r)*bl.dist}px)`,
+            top:`calc(42% + ${Math.sin(r)*bl.dist}px)`,
+            fontSize:bl.size,opacity:0,
+            animation:`leafBloom 1s ease-out ${bl.delay}s forwards`,pointerEvents:'none'
           }}>🌿</div>
         );
       })}
 
-      {/* Main logo */}
+      {/* Logo image */}
       <div style={{
-        width: '70vw', maxWidth: 300, opacity:0,
-        animation: 'splashLogoIn 1.2s cubic-bezier(0.34,1.56,0.64,1) 0.2s forwards',
-        ...(phase !== 'water' && phase !== 'exit' ? {
-          animationName: 'splashLogoIn, glowPulse',
-          animationDuration: '1.2s, 2s',
-          animationDelay: '0.2s, 1.5s',
-          animationIterationCount: '1, infinite',
-          animationFillMode: 'forwards, none'
-        } : {})
+        width:'75vw',maxWidth:320,opacity:0,
+        animation:'splashLogoScale 1s cubic-bezier(0.34,1.56,0.64,1) 0.15s forwards',
+        filter:'drop-shadow(0 10px 50px rgba(134,239,172,0.35))'
       }}>
-        <img src={typeof SPLASH_LOGO !== 'undefined' ? SPLASH_LOGO : ''} alt="AGM"
-          style={{width:'100%', height:'auto', filter:'drop-shadow(0 10px 40px rgba(134,239,172,0.3))'}} />
+        <img src={typeof SPLASH_LOGO!=='undefined'?SPLASH_LOGO:''} alt="AGM"
+          style={{width:'100%',height:'auto'}} />
       </div>
 
-      {/* Shimmer line under logo */}
+      {/* "A G M" text */}
       <div style={{
-        width: 120, height: 2, marginTop: 20,
-        background: 'linear-gradient(90deg, transparent, #86efac, #4ade80, #86efac, transparent)',
-        backgroundSize: '200% 100%',
-        animation: 'shimmer 2s linear infinite',
-        borderRadius: 2, opacity: 0.7
-      }} />
+        fontFamily:'Inter,sans-serif',fontWeight:800,fontSize:72,color:'#fff',
+        letterSpacing:8,lineHeight:1,marginTop:10,opacity:0,
+        textShadow:'0 4px 30px rgba(134,239,172,0.3)',
+        animation:'splashTextIn 0.8s ease-out 0.4s forwards'
+      }}>A G M</div>
 
-      {/* Water splash effect */}
-      {phase === 'water' && (
-        <>
-          {/* Central ripple */}
-          <div style={{
-            position:'absolute', left:'50%', top:'50%',
-            width:60, height:60, borderRadius:'50%',
-            border:'3px solid rgba(134,239,172,0.5)',
-            transform:'translate(-50%,-50%) scale(0)',
-            animation:'ripple 0.7s ease-out forwards'
-          }} />
-          <div style={{
-            position:'absolute', left:'50%', top:'50%',
-            width:40, height:40, borderRadius:'50%',
-            border:'2px solid rgba(74,222,128,0.4)',
-            transform:'translate(-50%,-50%) scale(0)',
-            animation:'ripple 0.7s ease-out 0.1s forwards'
-          }} />
-          <div style={{
-            position:'absolute', left:'50%', top:'50%',
-            width:80, height:80, borderRadius:'50%',
-            border:'2px solid rgba(34,197,94,0.3)',
-            transform:'translate(-50%,-50%) scale(0)',
-            animation:'ripple 0.7s ease-out 0.2s forwards'
-          }} />
-
-          {/* Water droplets flying outward */}
-          {waterDrops.map(d => {
-            const rad = d.angle * Math.PI / 180;
-            const tx = Math.cos(rad) * d.dist;
-            const ty = Math.sin(rad) * d.dist - 30;
-            return (
-              <div key={d.id} style={{
-                position:'absolute', left:'50%', top:'50%',
-                width:d.size, height:d.size*1.4,
-                borderRadius:'50% 50% 50% 50% / 60% 60% 40% 40%',
-                background:'linear-gradient(180deg, rgba(134,239,172,0.9), rgba(34,197,94,0.6))',
-                boxShadow:'0 0 8px rgba(134,239,172,0.5)',
-                animation: `waterSplash 0.6s ease-out ${d.delay}s forwards`,
-                transform: `translate(${tx}px, ${ty}px)`,
-                pointerEvents:'none'
-              }} />
-            );
-          })}
-        </>
-      )}
-
-      {/* Eco Solutions text */}
+      {/* "ECOSOLUTIONS" subtitle */}
       <div style={{
-        marginTop: 16, fontFamily:'Inter', fontWeight:300, fontSize:12,
-        color:'rgba(134,239,172,0.5)', letterSpacing:4, textTransform:'uppercase',
-        opacity:0, animation:'fadeIn 0.6s ease-out 1.4s forwards'
-      }}>Eco Solutions</div>
+        fontFamily:'Inter,sans-serif',fontWeight:300,fontSize:28,
+        color:'#a7f3d0',letterSpacing:2,marginTop:4,opacity:0,
+        animation:'splashTextIn 0.8s ease-out 0.7s forwards'
+      }}>ECOSOLUTIONS</div>
+
+      {/* Flowing River SVG */}
+      <div style={{width:300,height:120,marginTop:20,position:'relative',overflow:'hidden',borderRadius:16,opacity:0,
+        animation:'splashTextIn 0.8s ease-out 1s forwards'}}>
+        <svg width="600" height="120" style={{position:'absolute',top:0,left:0,animation:'riverFlow 3s linear infinite'}}>
+          <defs>
+            <linearGradient id="waterGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="rgba(20,184,166,0.6)" />
+              <stop offset="50%" stopColor="rgba(34,197,94,0.7)" />
+              <stop offset="100%" stopColor="rgba(20,184,166,0.6)" />
+            </linearGradient>
+            <linearGradient id="waveHighlight" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="rgba(167,243,208,0.4)" />
+              <stop offset="100%" stopColor="rgba(20,184,166,0.1)" />
+            </linearGradient>
+          </defs>
+          {/* Main water body */}
+          <path d="M0,50 Q30,30 60,50 T120,50 T180,50 T240,50 T300,50 T360,50 T420,50 T480,50 T540,50 T600,50 L600,120 L0,120 Z"
+            fill="url(#waterGrad)" />
+          {/* Wave highlight layer 1 */}
+          <path d="M0,45 Q25,25 50,45 T100,45 T150,45 T200,45 T250,45 T300,45 T350,45 T400,45 T450,45 T500,45 T550,45 T600,45 L600,70 L0,70 Z"
+            fill="url(#waveHighlight)" opacity="0.5" />
+          {/* Wave highlight layer 2 */}
+          <path d="M0,55 Q35,40 70,55 T140,55 T210,55 T280,55 T350,55 T420,55 T490,55 T560,55 T600,55 L600,85 L0,85 Z"
+            fill="rgba(103,232,249,0.15)" />
+          {/* Subtle foam dots */}
+          {[30,90,150,210,270,330,390,450,510,570].map((cx,i) => (
+            <circle key={i} cx={cx} cy={48+Math.sin(i)*5} r={1.5+Math.random()} fill="rgba(255,255,255,0.25)" />
+          ))}
+        </svg>
+
+        {/* Splash droplets */}
+        <svg width="300" height="120" style={{position:'absolute',top:0,left:0}}>
+          {splashDrops.map(d => (
+            <circle key={d.i} cx={d.cx} cy={d.cy} r="6" fill="none"
+              stroke="rgba(167,243,208,0.7)" strokeWidth="1.5"
+              style={{animation:`splashDrop ${d.dur}s ease-out ${d.delay}s infinite`}} />
+          ))}
+        </svg>
+      </div>
+
+      {/* Tagline */}
+      <div style={{
+        fontFamily:'Inter,sans-serif',fontWeight:300,fontSize:11,
+        color:'rgba(167,243,208,0.4)',letterSpacing:4,textTransform:'uppercase',
+        marginTop:20,opacity:0,animation:'splashTextIn 0.6s ease-out 1.3s forwards'
+      }}>Wastewater Treatment Solutions</div>
     </div>
   );
 }
